@@ -1,0 +1,45 @@
+# Main agent configuration
+
+# API connection section
+
+address: # default is blank, which is all addresses
+port: 5995 # default 5995
+token: private # <=== CHANGE THIS ====
+tls:
+  cert: adhoc # location of .crt file, adhoc will create a sel-signed cert
+  key: adhoc # location of .key file, adhoc will create a sel-signed cert
+
+defaultUnits: GiB # GiB = 1024 MiB, GB = 1000 MB
+
+# Plugins section
+
+pluginTimeout: 59
+pluginTypes:
+  # Linux
+  .sh:
+    - /bin/sh
+  .py:
+    - python3
+  .pl:
+    - perl
+  .php:
+    - php
+  # Windows
+  .ps1:
+    - powershell
+    - -ExecutionPolicy
+    - Bypass
+    - -File
+  .vbs:
+    - cscript
+    - $pluginName
+    - $pluginArgs
+    - //NoLogo
+  .bat:
+    - cmd
+    - /c
+
+# Configuration for senders
+# can be one or multiple of [NRDP]
+
+#senders:

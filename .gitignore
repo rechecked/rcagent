@@ -1,0 +1,12 @@
+./config.yml
+build/bin/*
+build/rcagent.spec
+rcagent.pem
+rcagent.key
+rcagent.exe
+rcagent
+resource.syso
+rcagent-*.msi
+rcagent-*.tar.gz
+rcagent-*.rpm
+rcagent-*.deb

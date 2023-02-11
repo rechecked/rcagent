@@ -1,0 +1,69 @@
+{
+  "product": "rcagent",
+  "company": "ReChecked",
+  "license": "LICENSE",
+  "info": {},
+  "upgrade-code": "c5c5a653-eeb4-43bc-b5ef-3d713c4aa664",
+  "files": [
+    { 
+      "path": "build/bin/rcagent.exe"
+    },
+    {
+      "path": "build/package/config.yml"
+    }
+  ],
+  "directories": [
+    {
+      "name": "plugins"
+    }
+  ],
+  "env": {
+    "guid": "89b14274-b36b-465c-b774-4b4df466ec45",
+    "vars": [
+      {
+        "name": "token",
+        "value": "private",
+        "permanent": "no",
+        "system": "no",
+        "action": "set",
+        "part": "last"
+      }
+    ]
+  },
+  "registries": [
+    {
+      "path": "HKCU\\Software\\rechecked\\rcagent",
+      "values": [
+        {
+          "name": "Version",
+          "value": "[SOME_VERSION]"
+        },
+        {
+          "name": "InstallDir",
+          "value": "[INSTALLDIR]"
+        }
+      ]
+    }
+  ],
+  "shortcuts": [],
+  "choco": {
+    "description": "rcagent",
+    "project-url": "https://github.com/rechecked/rcagent",
+    "tags": "rcagent monitoring agent",
+    "license-url": "https://github.com/rechecked/rcagent/blob/master/LICENSE"
+  },
+  "hooks": [
+    {
+      "command": "[INSTALLDIR]\\rcagent.exe -a install",
+      "when": "install"
+    },
+    {
+      "command": "sc.exe start rcagent",
+      "when": "install"
+    },
+    {
+      "command": "[INSTALLDIR]\\rcagent.exe -a uninstall",
+      "when": "uninstall"
+    }
+  ]
+}
