@@ -60,7 +60,6 @@ func Run(l service.Logger) {
     EndpointFunc("networks", status.HandleNetworks)
     EndpointFunc("system", status.HandleSystem)
     EndpointFunc("system/users", status.HandleUsers)
-    EndpointFunc("system/temps", status.HandleTemps)
 
     // Unix only
     // TODO: add linux logs
