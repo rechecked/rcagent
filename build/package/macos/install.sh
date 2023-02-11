@@ -42,7 +42,7 @@ else
     cp rcagent $DIR/rcagent
 
     # Create symlink
-    ln -s $DIR/rcagent /usr/local/bin/rcagent
+    ln -s $DIR/rcagent /usr/sbin/rcagent
 
     # Create rcagent user/group for plugins
     if ! dscl . -read /Groups/rcagent > /dev/null 2>&1; then

@@ -13,6 +13,8 @@ BuildRequires:  golang
 BuildRequires:  systemd-rpm-macros
 %endif
 
+Requires(pre): 	shadow-utils
+
 Provides:       %{name} = %{version}
 
 %description
@@ -26,7 +28,7 @@ reporter created to run active and passive checks on multiple operating systems.
 
 %build
 LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=%{_libdir}/%{name}/plugins \
--X ithub.com/rechecked/rcagent/internal/config.ConfigDir=%{_sysconfdir}/%{name}"
+-X github.com/rechecked/rcagent/internal/config.ConfigDir=%{_sysconfdir}/%{name}" \
 %{__make} build
 
 %install
@@ -40,6 +42,12 @@ mkdir -p $RPM_BUILD_ROOT/%{_libdir}/%{name}/plugins
 %check
 %{__make} test
 
+%pre
+getent group rcagent >/dev/null || groupadd -r rcagent
+getent passwd rcagent >/dev/null || \
+    useradd -r -g rcagent -d %{_libdir}/%{name} -s /sbin/nologin \
+    -c "rcagent user account for running plugins" rcagent
+
 %post
 %{_sbindir}/%{name} -a install &> /dev/null
 %systemd_post %{name}.service &> /dev/null
@@ -51,5 +59,7 @@ mkdir -p $RPM_BUILD_ROOT/%{_libdir}/%{name}/plugins
 %files
 %config(noreplace) %{_sysconfdir}/%{name}/config.yml
 %{_sbindir}/%{name}
+
+
 %dir %{_libdir}/%{name}/plugins
 

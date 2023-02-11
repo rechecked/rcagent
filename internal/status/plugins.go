@@ -83,7 +83,7 @@ func (p *Plugin) Run() PluginResults {
     // Validate user exists and can run before we start
     if !isValidUser() {
         return PluginResults{
-            Output: "The user 'rcagent' does not seem to exist on the system. To run plugins as root set runAsRoot: true in the config.",
+            Output: "The user 'rcagent' does not seem to exist on the system. To run plugins as root set runPluginsAsRoot: true in the config.",
             ExitCode: 3,
         }
     }

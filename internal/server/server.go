@@ -51,12 +51,16 @@ func Run(l service.Logger) {
     EndpointFunc("memory/virtual", status.HandleMemory)
     EndpointFunc("memory/swap", status.HandleSwap)
     EndpointFunc("cpu/percent", status.HandleCPU)
+    EndpointFunc("docker", status.HandleDocker)
     EndpointFunc("services", status.HandleServices)
     EndpointFunc("processes", status.HandleProcesses)
     EndpointFunc("disks", status.HandleDisks)
     EndpointFunc("disks/inodes", status.HandleInodes)
     EndpointFunc("plugins", status.HandlePlugins)
+    EndpointFunc("networks", status.HandleNetworks)
     EndpointFunc("system", status.HandleSystem)
+    EndpointFunc("system/users", status.HandleUsers)
+    EndpointFunc("system/temps", status.HandleTemps)
 
     // Unix only
     // TODO: add linux logs
@@ -169,13 +173,6 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
         log.Errorf("Error getting data. Err: %s", err)
     }
     w.Write(jsonData)
-}
-
-func ConvertToJson(i interface{}, pretty bool) ([]byte, error) {
-    if pretty {
-        return json.MarshalIndent(i, "", "    ")
-    }
-    return json.Marshal(i)
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request, status int) {

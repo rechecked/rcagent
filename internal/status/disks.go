@@ -75,7 +75,7 @@ func (i Inodes) CheckValue() float64 {
 
 func HandleDisks(cv config.Values) interface{} { 
 
-    disks, _ := disk.Partitions(true)
+    disks, _ := getDisks()
 
     // Find the specific disk if we are passing a path
     if cv.Path != "" {
@@ -90,18 +90,37 @@ func HandleDisks(cv config.Values) interface{} {
 }
 
 func HandleInodes(cv config.Values) interface{} {
-    disks, _ := disk.Partitions(true)
+    disks, _ := getDisks()
 
      // Find the specific disk if we are passing a path
     if cv.Path != "" {
-        disk, err := getDiskFromPath(disks, cv.Path, "", true)
-        if err != nil {
-            return err
-        }
+        disk, _ := getDiskFromPath(disks, cv.Path, "", true)
         return disk
+    } else {
+        var inodes []Inodes
+        for _, d := range disks {
+            i, _ := getDiskFromPath(disks, d.Mountpoint, "", true)
+            inode, _ := i.(Inodes)
+            inodes = append(inodes, inode)
+        }
+        return inodes
     }
 
     return disks
+}
+
+func getDisks() ([]disk.PartitionStat, error) {
+    var disks []disk.PartitionStat
+    d, err := disk.Partitions(true)
+    if err != nil {
+        return []disk.PartitionStat{}, err
+    }
+    for _, disk := range d {
+        if !config.Contains(config.Settings.ExcludeFsTypes, disk.Fstype) {
+            disks = append(disks, disk)
+        }
+    }
+    return disks, nil
 }
 
 func getDiskFromPath(disks []disk.PartitionStat, path, units string, inodes bool) (interface{}, error) {

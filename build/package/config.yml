@@ -11,6 +11,13 @@ tls:
 
 defaultUnits: GiB # GiB = 1024 MiB, GB = 1000 MB
 
+# Exclude file types from disks output
+excludeFsTypes: ["aufs", "autofs", "binfmt_misc", "cgroup", "configfs",
+  "debugfs", "devpts", "devtmpfs", "encryptfs", "efivarfs", "fuse", "fuseblk",
+  "fusectl", "hugetlbfs","mqueue", "overlayfs", "proc", "pstore", "rpc_pipefs",
+  "securityfs", "selinuxfs", "sysfs", "tmpfs", "tracefs", "bpf",
+  "fuse.vmware-vmblock", "fuse.gvfsd-fuse"]
+
 # Plugins section
 
 pluginTimeout: 59

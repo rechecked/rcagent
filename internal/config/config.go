@@ -22,6 +22,7 @@ type settings struct {
     Units string `yaml:"defaultUnits"`
     PluginDir string `yaml:"pluginDir"`
     PluginTypes map[string][]string `yaml:"pluginTypes"`
+    ExcludeFsTypes []string `yaml:"excludeFsTypes"`
     RunPluginsAsRoot bool `yaml:"runPluginsAsRoot"`
     Debug bool `yaml:"debug"`
 }
@@ -166,6 +167,7 @@ func getPluginDir() string {
     // Try to set to a default value if we didn't get one
     paths := []string{
         "plugins/",
+        "/usr/lib64/rcagent/plugins",
         "/usr/lib/rcagent/plugins",
         "C:\\Program Files\\rcagent\\plugins",
     }

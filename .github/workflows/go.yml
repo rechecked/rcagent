@@ -92,7 +92,10 @@ jobs:
         run: make build && make test
 
       - name: Build Installer
-        run: make build-dmg
+        run: |
+          LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
+          -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagnet" \
+          make build && make build-dmg
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
