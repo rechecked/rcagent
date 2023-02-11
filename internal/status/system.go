@@ -44,7 +44,7 @@ func HandleTemps(cv config.Values) interface{} {
 }
 
 func HandleUsers(cv config.Values) interface{} {
-    users, err := host.Users()
+    users, err := getUsers()
     if err != nil {
         return err
     }

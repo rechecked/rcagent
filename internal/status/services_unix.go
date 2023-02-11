@@ -1,4 +1,4 @@
-// +build !windows
+// +build !windows,!darwin
 
 package status
 
@@ -10,17 +10,14 @@ import (
 func getServices() ([]Service, error) {
 
     // Parse systemctl (or whatever other type of system service manager they have)
-    // systemctl list-units --type=service --all --plain
+    // systemctl list-units --type=service --all --plain --no-pager --no-legend
 
     svcs := []Service{}
-    c := cmd.NewCmd("systemctl", "list-units", "--type=service", "-all", "--plain")
+    c := cmd.NewCmd("systemctl", "list-units", "--type=service", "--all", "--plain", "--no-pager", "--no-legend")
     s := <-c.Start()
 
     if len(s.Stdout) > 0 {
         for _, l := range s.Stdout {
-            if !strings.Contains(l, ".service") {
-                continue
-            }
             tmp := strings.Fields(l)
             if len(tmp) >= 4 {
                 svcs = append(svcs, Service{
