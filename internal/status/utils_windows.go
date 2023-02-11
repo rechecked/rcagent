@@ -1,6 +1,6 @@
 // +build windows
 
-package api
+package status
 
 import (
     "os/exec"

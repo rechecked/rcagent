@@ -10,7 +10,7 @@ import (
 func TestOverrides(t *testing.T) {
 
     // Fake request with units set to GB
-    uri := "api/?"
+    uri := "status/?"
     param := make(url.Values)
     param["units"] = []string{"GB"}
     req, err := http.NewRequest("GET", uri+param.Encode(), nil)

@@ -1,6 +1,6 @@
 // +build windows
 
-package api
+package status
 
 import (
     "github.com/shirou/gopsutil/v3/winservices"

@@ -1,5 +1,5 @@
 
-package api
+package status
 
 import (
     "github.com/shirou/gopsutil/v3/host"

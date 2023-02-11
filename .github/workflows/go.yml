@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Prereqs
-        run: yum install golang rpm-build systemd-rpm-macros -y
+        run: yum install golang rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Prereqs
-        run: yum install golang rpm-build systemd-rpm-macros -y
+        run: yum install golang rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test

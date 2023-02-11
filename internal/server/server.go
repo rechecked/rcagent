@@ -13,7 +13,7 @@ import (
     "runtime"
     "github.com/kardianos/service"
     "github.com/rechecked/rcagent/internal/config"
-    "github.com/rechecked/rcagent/internal/api"
+    "github.com/rechecked/rcagent/internal/status"
 )
 
 type Endpoint func(cv config.Values) interface{}
@@ -48,20 +48,20 @@ func Run(l service.Logger) {
     }
 
     // Set up endpoints
-    EndpointFunc("memory/virtual", api.HandleMemory)
-    EndpointFunc("memory/swap", api.HandleSwap)
-    EndpointFunc("cpu/percent", api.HandleCPU)
-    EndpointFunc("services", api.HandleServices)
-    EndpointFunc("processes", api.HandleProcesses)
-    EndpointFunc("disks", api.HandleDisks)
-    EndpointFunc("disks/inodes", api.HandleInodes)
-    EndpointFunc("plugins", api.HandlePlugins)
-    EndpointFunc("system", api.HandleSystem)
+    EndpointFunc("memory/virtual", status.HandleMemory)
+    EndpointFunc("memory/swap", status.HandleSwap)
+    EndpointFunc("cpu/percent", status.HandleCPU)
+    EndpointFunc("services", status.HandleServices)
+    EndpointFunc("processes", status.HandleProcesses)
+    EndpointFunc("disks", status.HandleDisks)
+    EndpointFunc("disks/inodes", status.HandleInodes)
+    EndpointFunc("plugins", status.HandlePlugins)
+    EndpointFunc("system", status.HandleSystem)
 
     // Unix only
     // TODO: add linux logs
     if runtime.GOOS != "windows" {
-        EndpointFunc("load", api.HandleLoad)
+        EndpointFunc("load", status.HandleLoad)
     }
 
     // Windows only
@@ -69,7 +69,7 @@ func Run(l service.Logger) {
 
     // Add handlers and run server with config
     http.HandleFunc("/", handleMain)
-    http.HandleFunc("/api/", handleAPI)
+    http.HandleFunc("/status/", handleStatusAPI)
 
     var err error
     if config.Settings.TLS.Cert != "" && config.Settings.TLS.Key != "" {
@@ -90,7 +90,7 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
     errorHandler(w, r, http.StatusNotFound)
 }
 
-func handleAPI(w http.ResponseWriter, r *http.Request) {
+func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 
     var jsonData []byte
     var err error
@@ -115,8 +115,8 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Get API endpoint and path from url
-    fullpath := strings.TrimPrefix(r.URL.Path, "/api/")
+    // Get status API endpoint and path from url
+    fullpath := strings.TrimPrefix(r.URL.Path, "/status/")
 
     endpoint := endpoints[fullpath]
     if endpoint != nil {
@@ -125,16 +125,16 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
         e := endpoint(values)
 
         // Check if we are checkable type
-        chk, ok := e.(api.Checkable)
+        chk, ok := e.(status.Checkable)
         if values.Check && ok {
-            check := api.GetCheckResult(chk, values.Warning, values.Critical)
+            check := status.GetCheckResult(chk, values.Warning, values.Critical)
             jsonData, err = ConvertToJson(check, values.Pretty)
         }
 
         // Check if we are a checkable against type
-        chk2, ok2 := e.(api.CheckableAgainst)
+        chk2, ok2 := e.(status.CheckableAgainst)
         if values.Check && ok2 {
-            check := api.GetCheckAgainstResult(chk2, values.Expected)
+            check := status.GetCheckAgainstResult(chk2, values.Expected)
             jsonData, err = ConvertToJson(check, values.Pretty)
         }
 
@@ -164,14 +164,6 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
         }
         jsonData, err = ConvertToJson(error, values.Pretty)
     }
-
-    /*
-    data := struct{
-        Thresholds *api.Thresholds `json:"thresholds"`
-    }{
-        Thresholds: thresholds,
-    }
-    */
 
     if err != nil {
         log.Errorf("Error getting data. Err: %s", err)

@@ -1,5 +1,5 @@
 
-package api
+package status
 
 import (
     "strings"
