@@ -62,7 +62,7 @@ func Run() {
             if ok {
                 go sendToSenders(chk, check)
                 if config.Settings.Debug {
-                    fmt.Printf("%s\n", chk)
+                    fmt.Printf("%s\n", chk.String())
                 }
             } else {
                 fmt.Printf("The check for '%s - %s' is invalid, check endpoints and options, disabling",
@@ -75,7 +75,7 @@ func Run() {
 
 func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
     if config.Settings.Debug {
-        fmt.Printf("Sending check: %s\n", chk)
+        fmt.Printf("Sending check: %s\n", chk.String())
     }
 
     // Get all senders
@@ -130,7 +130,7 @@ func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
                 fmt.Printf("Error: sendToSenders: %s", err)
             }
             if config.Settings.Debug {
-                fmt.Printf("Sender NRDP repsonse: %s", resp)
+                fmt.Printf("Sender NRDP repsonse: %s", resp.String())
             }
         }
     }
