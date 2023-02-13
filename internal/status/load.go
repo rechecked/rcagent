@@ -16,7 +16,7 @@ type Load struct {
 }
 
 func (l Load) String() string {
-    return fmt.Sprintf("Load is %.2f, %.2f, %.2f", l.Load1, l.Load5, l.Load15)    
+    return fmt.Sprintf("Load average is %.2f, %.2f, %.2f", l.Load1, l.Load5, l.Load15)    
 }
 
 func (l Load) PerfData(warn, crit string) string {

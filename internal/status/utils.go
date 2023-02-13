@@ -41,15 +41,15 @@ func (c *CheckResult) String() string {
 
 func GetCheckResult(chk Checkable, w, c string) CheckResult {
     exitcode := 0
-    output := fmt.Sprintf("OK: %s", chk.String())
+    output := fmt.Sprintf("OK - %s", chk.String())
     cv := chk.CheckValue()
     if isInRange(w, cv) {
         exitcode = 1
-        output = fmt.Sprintf("WARNING: %s", chk.String())
+        output = fmt.Sprintf("WARNING - %s", chk.String())
     }
     if isInRange(c, cv) {
         exitcode = 2
-        output = fmt.Sprintf("CRITICAL: %s", chk.String())
+        output = fmt.Sprintf("CRITICAL - %s", chk.String())
     }
 
     perfdata := chk.PerfData(w, c)
@@ -71,7 +71,7 @@ func GetCheckAgainstResult(chk CheckableAgainst, e string) CheckResult {
     cv := chk.CheckValue()
     if cv != e {
         exitcode = 2
-        output = fmt.Sprintf("CRITICAL: %s", chk.String())
+        output = fmt.Sprintf("CRITICAL - %s", chk.String())
     }
 
     return CheckResult{
@@ -151,6 +151,6 @@ func isInRange(r string, value float64) bool {
 func errorCheckResult(err error) CheckResult {
     return CheckResult{
         Exitcode: 3,
-        Output: fmt.Sprintf("UNKOWN: %s", err),
+        Output: fmt.Sprintf("UNKOWN - %s", err),
     }
 }
