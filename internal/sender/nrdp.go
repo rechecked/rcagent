@@ -13,8 +13,8 @@ import (
 
 type NRDPServer struct {
     Name  string
-    url   string
-    token string
+    Url   string
+    Token string
 }
 
 type NRDPResponse struct {
@@ -30,7 +30,7 @@ type NRDPObjectType struct {
 type NRDPCheckResult struct {
     Checkresult NRDPObjectType `json:"checkresult"`
     Hostname    string         `json:"hostname"`
-    Servicename string         `json:"hostname,omitempty"`
+    Servicename string         `json:"servicename,omitempty"`
     State       int            `json:"state"`
     Output      string         `json:"output"`
 }
@@ -41,8 +41,8 @@ func (n *NRDPServer) SetConn(u, token string) error {
     if _, err := url.ParseRequestURI(u); err != nil {
         return err
     }
-    n.url = u
-    n.token = token
+    n.Url = u
+    n.Token = token
 
     return nil
 }
@@ -62,11 +62,11 @@ func (n *NRDPServer) Send(checks []NRDPCheckResult) (NRDPResponse, error) {
 
     data := url.Values{
         "cmd": {"submitcheck"},
-        "token": {n.token},
+        "token": {n.Token},
         "json": {fmt.Sprintf(`{"checkresults":%s}`, res)},
     }
 
-    resp, err := sendToNRDP(n.url, data)
+    resp, err := sendToNRDP(n.Url, data)
     if err != nil {
         return NRDPResponse{}, err
     }
@@ -80,11 +80,11 @@ func (n *NRDPServer) TestConn() error {
 
     data := url.Values{
         "cmd": {"submitcheck"},
-        "token": {n.token},
+        "token": {n.Token},
         "json": {`{"checkresults":[]}`},
     }
 
-    resp, err := http.PostForm(n.url, data)
+    resp, err := http.PostForm(n.Url, data)
     if err != nil {
         return err
     }
@@ -105,7 +105,7 @@ func (n *NRDPServer) TestConn() error {
 }
 
 func (n *NRDPServer) String() string {
-    return fmt.Sprintf("%s", n.url)
+    return fmt.Sprintf("%s", n.Url)
 }
 
 func (n *NRDPResponse) String() string {

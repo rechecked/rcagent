@@ -74,84 +74,78 @@ func (i Inodes) CheckValue() float64 {
 }
 
 func HandleDisks(cv config.Values) interface{} { 
-
-    disks, _ := getDisks()
+    disks, _ := getDisks(cv.Units())
 
     // Find the specific disk if we are passing a path
     if cv.Path != "" {
-        disk, err := getDiskFromPath(disks, cv.Path, cv.Units(), false)
-        if err != nil {
-            return err
+        for _, disk := range disks {
+            if cv.Path == disk.Path {
+                return disk
+            }
         }
-        return disk
     }
 
     return disks
 }
 
 func HandleInodes(cv config.Values) interface{} {
-    disks, _ := getDisks()
+    disks, _ := getDisksInodes(cv.Units())
 
      // Find the specific disk if we are passing a path
     if cv.Path != "" {
-        disk, _ := getDiskFromPath(disks, cv.Path, "", true)
-        return disk
-    } else {
-        var inodes []Inodes
-        for _, d := range disks {
-            i, _ := getDiskFromPath(disks, d.Mountpoint, "", true)
-            inode, _ := i.(Inodes)
-            inodes = append(inodes, inode)
+        for _, disk := range disks {
+            if cv.Path == disk.Path {
+                return disk
+            }
         }
-        return inodes
     }
 
     return disks
 }
 
-func getDisks() ([]disk.PartitionStat, error) {
-    var disks []disk.PartitionStat
+func getDisks(units string) ([]Disk, error) {
+    var disks []Disk
     d, err := disk.Partitions(true)
     if err != nil {
-        return []disk.PartitionStat{}, err
+        return disks, err
     }
-    for _, disk := range d {
-        if !config.Contains(config.Settings.ExcludeFsTypes, disk.Fstype) {
-            disks = append(disks, disk)
+    for _, i := range d {
+        if !config.Contains(config.Settings.ExcludeFsTypes, i.Fstype) {
+            u, _ := disk.Usage(i.Mountpoint)
+            disks = append(disks, Disk{
+                Path: i.Mountpoint,
+                Device: i.Device,
+                Fstype: i.Fstype,
+                Total: ConvertToUnit(u.Total, units),
+                Free: ConvertToUnit(u.Free, units),
+                Used: ConvertToUnit(u.Used, units),
+                UsedPercent: u.UsedPercent,
+                Units: units,
+            })
         }
     }
     return disks, nil
 }
 
-func getDiskFromPath(disks []disk.PartitionStat, path, units string, inodes bool) (interface{}, error) {
-
-    for _, d := range disks {
-        if d.Mountpoint == path {
-            disk, _ := disk.Usage(d.Mountpoint)
-
-            if inodes {
-                return Inodes{
-                    Path: disk.Path,
-                    Device: d.Device,
-                    Fstype: disk.Fstype,
-                    Total: float64(disk.InodesTotal),
-                    Free: float64(disk.InodesFree),
-                    Used: float64(disk.InodesUsed),
-                    UsedPercent: disk.InodesUsedPercent,
-                }, nil
-            }
-            return Disk{
-                Path: disk.Path,
-                Device: d.Device,
-                Fstype: disk.Fstype,
-                Total: ConvertToUnit(disk.Total, units),
-                Free: ConvertToUnit(disk.Free, units),
-                Used: ConvertToUnit(disk.Used, units),
-                UsedPercent: disk.UsedPercent,
-                Units: units,
-            }, nil
+func getDisksInodes(units string) ([]Inodes, error) {
+    var inodes []Inodes
+    d, err := disk.Partitions(true)
+    if err != nil {
+        return inodes, err
+    }
+    for _, i := range d {
+        if !config.Contains(config.Settings.ExcludeFsTypes, i.Fstype) {
+            u, _ := disk.Usage(i.Mountpoint)
+            inodes = append(inodes, Inodes{
+                Path: i.Mountpoint,
+                Device: i.Device,
+                Fstype: i.Fstype,
+                Total: float64(u.InodesTotal),
+                Free: float64(u.InodesFree),
+                Used: float64(u.InodesUsed),
+                UsedPercent: u.InodesUsedPercent,
+            })
         }
     }
-
-    return Disk{}, fmt.Errorf("The path (%s) does not exist as a mountpount.", path)
+    return inodes, nil
 }

@@ -7,30 +7,52 @@ import (
     "net/http"
     "strconv"
     "os"
+    "time"
     "embed"
+    "strings"
     "gopkg.in/yaml.v3"
 )
 
 type settings struct {
-    Address string `yaml:"address"`
-    Port int `yaml:"port"`
-    Token string `yaml:"token"`
+    Address          string              `yaml:"address"`
+    Port             int                 `yaml:"port"`
+    Token            string              `yaml:"token"`
     TLS struct {
-        Cert string `yaml:"cert"`
-        Key string `yaml:"key"`
+        Cert         string              `yaml:"cert"`
+        Key          string              `yaml:"key"`
     }
-    Units string `yaml:"defaultUnits"`
-    PluginDir string `yaml:"pluginDir"`
-    PluginTypes map[string][]string `yaml:"pluginTypes"`
-    ExcludeFsTypes []string `yaml:"excludeFsTypes"`
-    RunPluginsAsRoot bool `yaml:"runPluginsAsRoot"`
-    Debug bool `yaml:"debug"`
+    Units            string              `yaml:"defaultUnits"`
+    PluginDir        string              `yaml:"pluginDir"`
+    PluginTypes      map[string][]string `yaml:"pluginTypes"`
+    ExcludeFsTypes   []string            `yaml:"excludeFsTypes"`
+    RunPluginsAsRoot bool                `yaml:"runPluginsAsRoot"`
+    Debug            bool                `yaml:"debug"`
+    Senders          []SenderCfg         `yaml:"senders"`
+    PassiveChecks    []CheckCfg          `yaml:"checks"`
+}
+
+type SenderCfg struct {
+    Name  string `yaml:"name"`
+    Url   string `yaml:"url"`
+    Token string `yaml:"token"`
+    Type  string `yaml:"type"`
+}
+
+type CheckCfg struct {
+    Hostname    string `yaml:"hostname"`
+    Servicename string `yaml:"servicename"`
+    Interval    string `yaml:"interval"`
+    Endpoint    string `yaml:"endpoint"`
+    Options     Values `yaml:"options"`
+    Disabled    bool
+    NextRun     time.Time
 }
 
 type Values struct {
     Check    bool
     Pretty   bool
     Plugin   string
+    Name     string
     Path     string
     Args     []string
     Against  string
@@ -72,6 +94,7 @@ func ParseValues(r *http.Request) Values {
         Check: check,
         Pretty: pretty,
         Plugin: r.FormValue("plugin"),
+        Name: r.FormValue("name"),
         Path: r.FormValue("path"),
         Args: r.Form["arg"],
         Against: r.FormValue("against"),
@@ -130,6 +153,15 @@ func ParseFile(file string, defaultFile embed.FS) error {
     // Set defaults if we need to
     if Settings.PluginDir == "" {
         Settings.PluginDir = getPluginDir()
+    }
+
+    // Make sure any checks are set to their options for check=1
+    hostname, _ := os.Hostname()
+    for i, c := range Settings.PassiveChecks {
+        Settings.PassiveChecks[i].Options.Check = true
+        if strings.Contains(c.Hostname, "$HOST") {
+            Settings.PassiveChecks[i].Hostname = strings.Replace(c.Hostname, "$HOST", hostname, -1)
+        }
     }
 
     return nil

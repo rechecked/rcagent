@@ -4,7 +4,6 @@ package status
 import (
     "fmt"
     "strings"
-    "runtime"
     "github.com/shirou/gopsutil/v3/load"
     "github.com/rechecked/rcagent/internal/config"
 )
@@ -55,14 +54,6 @@ func (l Load) CheckValue() float64 {
 }
 
 func HandleLoad(cv config.Values) interface{} {
-
-    if runtime.GOOS == "windows" {
-        return apiError{
-            Message: "Endpoint does not exist on Windows systems",
-            Status: "error",
-        }
-    }
-
     avg, _ := load.Avg()
     load := Load{
         Load1: avg.Load1,

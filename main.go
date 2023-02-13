@@ -9,6 +9,7 @@ import (
     "embed"
     "github.com/kardianos/service"
     "github.com/rechecked/rcagent/internal/server"
+    "github.com/rechecked/rcagent/internal/sender"
     "github.com/rechecked/rcagent/internal/config"
 )
 
@@ -28,7 +29,7 @@ func (p *program) run() error {
     go server.Run(logger)
 
     // If we have a sender (passive checks)
-    //go sender.NDRP()
+    go sender.Run()
 
     // Do work here
     return nil

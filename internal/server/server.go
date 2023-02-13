@@ -37,8 +37,8 @@ func Run(l service.Logger) {
 
     // Check if we are using adhoc certs, if we are, generate them
     if config.Settings.TLS.Cert == "adhoc" && config.Settings.TLS.Key == "adhoc" {
-        config.Settings.TLS.Cert = "rcagent.pem"
-        config.Settings.TLS.Key = "rcagent.key"
+        config.Settings.TLS.Cert = config.ConfigDir+"rcagent.pem"
+        config.Settings.TLS.Key = config.ConfigDir+"rcagent.key"
         if !config.FileExists(config.Settings.TLS.Cert) {
             err := GenerateCert()
             if err != nil {
@@ -47,28 +47,7 @@ func Run(l service.Logger) {
         }
     }
 
-    // Set up endpoints
-    EndpointFunc("memory/virtual", status.HandleMemory)
-    EndpointFunc("memory/swap", status.HandleSwap)
-    EndpointFunc("cpu/percent", status.HandleCPU)
-    EndpointFunc("docker", status.HandleDocker)
-    EndpointFunc("services", status.HandleServices)
-    EndpointFunc("processes", status.HandleProcesses)
-    EndpointFunc("disks", status.HandleDisks)
-    EndpointFunc("disks/inodes", status.HandleInodes)
-    EndpointFunc("plugins", status.HandlePlugins)
-    EndpointFunc("networks", status.HandleNetworks)
-    EndpointFunc("system", status.HandleSystem)
-    EndpointFunc("system/users", status.HandleUsers)
-
-    // Unix only
-    // TODO: add linux logs
-    if runtime.GOOS != "windows" {
-        EndpointFunc("load", status.HandleLoad)
-    }
-
-    // Windows only
-    // TODO: add windows logs and counters
+    SetupEndpoints();
 
     // Add handlers and run server with config
     http.HandleFunc("/", handleMain)
@@ -85,7 +64,61 @@ func Run(l service.Logger) {
     }
 }
 
-func EndpointFunc(path string, endpoint Endpoint) {
+func SetupEndpoints() {
+    // Set up saved values for network counters
+    status.Setup()
+
+    // Set up endpoints
+    endpointFunc("memory/virtual", status.HandleMemory)
+    endpointFunc("memory/swap", status.HandleSwap)
+    endpointFunc("cpu/percent", status.HandleCPU)
+    endpointFunc("disk", status.HandleDisks)
+    //endpointFunc("docker", status.HandleDocker)
+    endpointFunc("services", status.HandleServices)
+    endpointFunc("processes", status.HandleProcesses)
+    endpointFunc("plugins", status.HandlePlugins)
+    endpointFunc("network", status.HandleNetworks)
+    endpointFunc("system", status.HandleSystem)
+    endpointFunc("system/users", status.HandleUsers)
+
+    // Unix only
+    if runtime.GOOS != "windows" {
+        endpointFunc("load", status.HandleLoad)
+        endpointFunc("disks/inodes", status.HandleInodes)
+    }
+
+    // Windows only
+    // TODO: add counters
+}
+
+func GetDataFromEndpoint(path string, values config.Values) (interface{}, error) {
+    endpoint := endpoints[path]
+    if endpoint != nil {
+
+        // Get the data back from the endpoint
+        e := endpoint(values)
+
+        // Check if we are checkable type
+        chk, ok := e.(status.Checkable)
+        if values.Check && ok {
+            check := status.GetCheckResult(chk, values.Warning, values.Critical)
+            return check, nil
+        }
+
+        // Check if we are a checkable against type
+        chk2, ok2 := e.(status.CheckableAgainst)
+        if values.Check && ok2 {
+            check := status.GetCheckAgainstResult(chk2, values.Expected)
+            return check, nil
+        }
+
+        // If we aren't doing a check, convert endpoint return to JSON
+        return e, nil
+    }
+    return nil, errors.New("GetDataFromEndpoint: Endpoint does not exist")
+}
+
+func endpointFunc(path string, endpoint Endpoint) {
     endpoints[path] = endpoint
 }
 
@@ -121,33 +154,8 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
     // Get status API endpoint and path from url
     fullpath := strings.TrimPrefix(r.URL.Path, "/status/")
 
-    endpoint := endpoints[fullpath]
-    if endpoint != nil {
-
-        // Get the data back from the endpoint
-        e := endpoint(values)
-
-        // Check if we are checkable type
-        chk, ok := e.(status.Checkable)
-        if values.Check && ok {
-            check := status.GetCheckResult(chk, values.Warning, values.Critical)
-            jsonData, err = ConvertToJson(check, values.Pretty)
-        }
-
-        // Check if we are a checkable against type
-        chk2, ok2 := e.(status.CheckableAgainst)
-        if values.Check && ok2 {
-            check := status.GetCheckAgainstResult(chk2, values.Expected)
-            jsonData, err = ConvertToJson(check, values.Pretty)
-        }
-
-        // If we aren't doing a check, convert endpoint return to JSON
-        if len(jsonData) == 0 && err == nil {
-            jsonData, err = ConvertToJson(e, values.Pretty)
-        }
-
-    } else {
-
+    data, err := GetDataFromEndpoint(fullpath, values)
+    if err != nil {
         // Find out if we have any endpoints we can give out a list
         // of accessible endpoints to the output
         var e []string
@@ -160,13 +168,13 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
         sort.Strings(e)
 
         // Endpoint doesn't exist, give a generic invalid path error
-        error := serverError{
+        data = serverError{
             Message: "Invalid API endpoint path given",
             Status: "error",
             Endpoints: e,
         }
-        jsonData, err = ConvertToJson(error, values.Pretty)
     }
+    jsonData, err = ConvertToJson(data, values.Pretty)
 
     if err != nil {
         log.Errorf("Error getting data. Err: %s", err)

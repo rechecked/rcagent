@@ -2,6 +2,8 @@
 package status
 
 import (
+    "fmt"
+    "strings"
     "github.com/shirou/gopsutil/v3/process"
     "github.com/rechecked/rcagent/internal/config"
 )
@@ -13,16 +15,42 @@ type Process struct {
     Cmdline string `json:"cmdline"`
 }
 
+type ProcessList struct {
+    Count     int       `json:"count"`
+    Processes []Process `json:"processes"`
+}
+
+func (p ProcessList) String() string {
+    return fmt.Sprintf("Process count is %d", p.Count)
+}
+
+func (p ProcessList) CheckValue() float64 {
+    return float64(p.Count)
+}
+
+func (p ProcessList) PerfData(warn, crit string) string {
+    var perfdata []string
+    data := fmt.Sprintf("'processes'=%0.f", p.CheckValue())
+    perfdata = append(perfdata, createPerfData(data, warn, crit))
+    return strings.Join(perfdata, " ")
+}
+
 func HandleProcesses(cv config.Values) interface{} {
     var procs []Process
     data, err := process.Processes()
     if err != nil {
         return []Process{}
     }
+
     for _, p := range data {
         name, _ := p.Name()
         exe, _ := p.Exe()
         cmdline, _ := p.Cmdline()
+        if cv.Name != "" {
+            if !strings.Contains(name, cv.Name) {
+                continue
+            }
+        }
         procs = append(procs, Process{
             Name: name,
             Exe: exe,
@@ -30,5 +58,11 @@ func HandleProcesses(cv config.Values) interface{} {
             PID: p.Pid,
         })
     }
-    return procs
+
+    pList := ProcessList{
+        Count: len(procs),
+        Processes: procs,
+    }
+
+    return pList
 }
