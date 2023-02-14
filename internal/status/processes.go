@@ -47,7 +47,7 @@ func HandleProcesses(cv config.Values) interface{} {
         exe, _ := p.Exe()
         cmdline, _ := p.Cmdline()
         if cv.Name != "" {
-            if !strings.Contains(name, cv.Name) {
+            if name != cv.Name {
                 continue
             }
         }

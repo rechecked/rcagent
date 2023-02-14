@@ -52,11 +52,11 @@ func (i InterfaceDelta) PerfData(warn, crit string) string {
     var perfdata []string
     var data string
 
-    if i.checkType == "in" || i.checkType == "both" {
+    if i.checkType == "in" || i.checkType == "total" {
         data = fmt.Sprintf("'in'=%0.2f%s/s", i.InPerSec, i.Units)
         perfdata = append(perfdata, createPerfData(data, warn, crit))
     }
-    if i.checkType == "out" || i.checkType == "both" {
+    if i.checkType == "out" || i.checkType == "total" {
         data = fmt.Sprintf("'out'=%0.2f%s/s", i.OutPerSec, i.Units)
         perfdata = append(perfdata, createPerfData(data, warn, crit))
     }
@@ -115,7 +115,7 @@ func HandleNetworks(cv config.Values) interface{} {
             } else if cv.Against == "out" {
                 cVal = outPs
             } else {
-                cv.Against = "both"
+                cv.Against = "total"
                 cVal = inPs + outPs
             }
 

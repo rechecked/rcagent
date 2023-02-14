@@ -84,7 +84,7 @@ func SetupEndpoints() {
     // Unix only
     if runtime.GOOS != "windows" {
         endpointFunc("load", status.HandleLoad)
-        endpointFunc("disks/inodes", status.HandleInodes)
+        endpointFunc("disk/inodes", status.HandleInodes)
     }
 
     // Windows only

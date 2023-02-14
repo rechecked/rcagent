@@ -20,7 +20,6 @@ func getServices() ([]Service, error) {
     if len(s.Stdout) > 0 {
         for _, l := range s.Stdout {
             tmp := strings.Fields(l)
-            fmt.Printf("%s\n", tmp)
             status := "stopped"
             if tmp[0] != "-" {
                 status = "running"
