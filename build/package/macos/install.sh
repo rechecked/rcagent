@@ -11,7 +11,7 @@ CFGDIR="/etc/rcagent"
 UPGRADE=0
 
 # Check installation
-if [ -d $DIR ]; then
+if [ -f "$DIR/rcagent" ]; then
     UPGRADE=1
     echo "Upgrading ReChecked Agent"
 else
@@ -41,9 +41,6 @@ else
     cp uninstall.sh $DIR/uninstall.sh
     cp rcagent $DIR/rcagent
 
-    # Create symlink
-    ln -s $DIR/rcagent /usr/sbin/rcagent
-
     # Create rcagent user/group for plugins
     if ! dscl . -read /Groups/rcagent > /dev/null 2>&1; then
         PrimaryGroupID=`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -ug | tail -1`
@@ -67,7 +64,7 @@ else
     fi
 
     # Run the rcagent service install
-    rcagent -a install
+    /usr/local/rcagent/rcagent -a install
     if [[ $(xattr -l /Library/LaunchDaemons/io.rechecked.rcagent.plist) ]]; then
         xattr -d com.apple.quarantine /Library/LaunchDaemons/io.rechecked.rcagent.plist
     fi

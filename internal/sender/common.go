@@ -11,7 +11,6 @@ import (
 
 // Set up passive related loop
 func Run() {
-    server.SetupEndpoints()
 
     // Verify we have checks to run...
     checks := config.Settings.PassiveChecks

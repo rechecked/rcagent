@@ -47,7 +47,7 @@ func Run(l service.Logger) {
         }
     }
 
-    SetupEndpoints();
+    setupEndpoints();
 
     // Add handlers and run server with config
     http.HandleFunc("/", handleMain)
@@ -64,7 +64,7 @@ func Run(l service.Logger) {
     }
 }
 
-func SetupEndpoints() {
+func setupEndpoints() {
     // Set up saved values for network counters
     status.Setup()
 
@@ -80,11 +80,12 @@ func SetupEndpoints() {
     endpointFunc("network", status.HandleNetworks)
     endpointFunc("system", status.HandleSystem)
     endpointFunc("system/users", status.HandleUsers)
+    endpointFunc("system/version", status.HandleVersion)
 
     // Unix only
     if runtime.GOOS != "windows" {
         endpointFunc("load", status.HandleLoad)
-        endpointFunc("disks/inodes", status.HandleInodes)
+        endpointFunc("disk/inodes", status.HandleInodes)
     }
 
     // Windows only

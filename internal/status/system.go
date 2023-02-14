@@ -12,6 +12,10 @@ type Users struct {
     count float64
 }
 
+type Version struct {
+    Version string `json:"version"`
+}
+
 func (u Users) String() string {
     return fmt.Sprintf("Current users count is %0.0f", u.CheckValue())
 }
@@ -25,6 +29,18 @@ func (u Users) PerfData(warn, crit string) string {
     data := fmt.Sprintf("'users'=%0.0f", u.CheckValue())
     perfdata = append(perfdata, createPerfData(data, warn, crit))
     return strings.Join(perfdata, " ")
+}
+
+func (v Version) String() string {
+    return fmt.Sprintf("rcagent version is %s", v.Version)
+}
+
+func (v Version) CheckValue() float64 {
+    return 0.0
+}
+
+func (v Version) PerfData(warn, crit string) string {
+    return ""
 }
 
 func HandleSystem(cv config.Values) interface{} {
@@ -41,6 +57,12 @@ func HandleTemps(cv config.Values) interface{} {
         return err
     }
     return temps
+}
+
+func HandleVersion(cv config.Values) interface{} {
+    return Version{
+        Version: config.Version,
+    }
 }
 
 func HandleUsers(cv config.Values) interface{} {
