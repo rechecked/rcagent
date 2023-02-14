@@ -33,13 +33,13 @@ else
     mkdir $DIR/plugins
     mkdir $CFGDIR
 
-    # Fix apple message
-    xattr -d -r com.apple.quarantine $DIR
-
     # Copy files
     cp config.yml $CFGDIR/config.yml
     cp uninstall.sh $DIR/uninstall.sh
     cp rcagent $DIR/rcagent
+
+    # Fix apple message
+    xattr -d -r com.apple.quarantine $DIR
 
     # Create rcagent user/group for plugins
     if ! dscl . -read /Groups/rcagent > /dev/null 2>&1; then

@@ -59,15 +59,15 @@
   },
   "hooks": [
     {
-      "command": "cmd /c [INSTALLDIR]\\rcagent.exe -a install",
+      "command": "[INSTALLDIR]\\rcagent.exe -a install",
       "when": "install"
     },
     {
-      "command": "cmd /c sc.exe stop rcagent",
+      "command": "sc.exe stop rcagent",
       "when": "uninstall"
     },
     {
-      "command": "cmd /c [INSTALLDIR]\\rcagent.exe -a uninstall",
+      "command": "[INSTALLDIR]\\rcagent.exe -a uninstall",
       "when": "uninstall"
     }
   ]
