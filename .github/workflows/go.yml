@@ -9,8 +9,118 @@ on:
 
 jobs:
 
-  build_debian:
+  build_ubuntu22:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Setup Prereqs
+        run: sudo apt-get install -y alien
+
+      - name: Build Dist
+        run: sudo make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian-build
+            path: build/rcagent_*.deb
+
+  build_ubuntu20:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Setup Prereqs
+        run: sudo apt-get install -y alien
+
+      - name: Build Dist
+        run: sudo make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian-build
+            path: build/rcagent_*.deb
+
+  build_ubuntu18:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:18.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Setup Prereqs
+        run: sudo apt-get install -y alien
+
+      - name: Build Dist
+        run: sudo make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian-build
+            path: build/rcagent_*.deb
+
+  build_debian11:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:11
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Setup Prereqs
+        run: sudo apt-get install -y alien
+
+      - name: Build Dist
+        run: sudo make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian-build
+            path: build/rcagent_*.deb
+
+  build_debian10:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:10
     steps:
       - uses: actions/checkout@v3
 

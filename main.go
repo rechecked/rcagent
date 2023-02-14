@@ -61,17 +61,22 @@ func main() {
     }
 
     var deps []string
+    name := "rcagent"
     if runtime.GOOS == "linux" {
         deps = []string{
             "Requires=network.target",
             "After=network-online.target syslog.target",
         }
     }
+    // Change name on macos to conform to macos
+    if runtime.GOOS == "darwin" {
+        name = "io.rechecked.rcagent"
+    }
 
     svcConfig := &service.Config{
-        Name:        "rcagent",
-        DisplayName: "RCAgent",
-        Description: "ReChecked system status and monitoring agent",
+        Name:         name,
+        DisplayName:  "RCAgent",
+        Description:  "ReChecked system status and monitoring agent",
         Dependencies: deps,
     }
 

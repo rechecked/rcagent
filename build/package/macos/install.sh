@@ -68,7 +68,7 @@ else
     if [[ $(xattr -l /Library/LaunchDaemons/io.rechecked.rcagent.plist) ]]; then
         xattr -d com.apple.quarantine /Library/LaunchDaemons/io.rechecked.rcagent.plist
     fi
-    launchctl load io.rechecked.rcagent
+    #launchctl load io.rechecked.rcagent
 
     echo "Installation complete!"
     echo "- Configure rcagent token: $CFGDIR/config.yml"
