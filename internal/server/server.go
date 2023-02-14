@@ -80,6 +80,7 @@ func setupEndpoints() {
     endpointFunc("network", status.HandleNetworks)
     endpointFunc("system", status.HandleSystem)
     endpointFunc("system/users", status.HandleUsers)
+    endpointFunc("system/version", status.HandleVersion)
 
     // Unix only
     if runtime.GOOS != "windows" {

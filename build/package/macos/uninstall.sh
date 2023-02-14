@@ -15,7 +15,7 @@ echo "Uninstalling ReChecked Agent"
 launchctl stop io.rechecked.rcagent
 
 # Remove service
-rcagent -a uninstall
+/usr/local/rcagent/rcagent -a uninstall
 
 # Remove install directory
 rm -rf $DIR

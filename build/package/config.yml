@@ -62,7 +62,7 @@ pluginTypes:
 #checks:
 #  - hostname: $HOST
 #    interval: 5m
-#    endpoint: cpu/percent
+#    endpoint: system/version
 #    options:
 #      warning: 10
 #      critical: 20
