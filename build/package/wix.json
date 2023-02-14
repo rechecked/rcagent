@@ -14,7 +14,12 @@
   ],
   "directories": [
     {
-      "name": "plugins"
+      "name": "plugins",
+      "files": [
+        {
+          "path": "plugins/check_test.ps1"
+        }
+      ]
     }
   ],
   "env": {
@@ -36,7 +41,7 @@
       "values": [
         {
           "name": "Version",
-          "value": "[SOME_VERSION]"
+          "value": "[ProductVersion]"
         },
         {
           "name": "InstallDir",
@@ -54,11 +59,16 @@
   },
   "hooks": [
     {
-      "command": "[INSTALLDIR]\\rcagent.exe -a install",
+      "command": "cmd /c [INSTALLDIR]\\rcagent.exe -a install",
       "when": "install"
     },
     {
-      "command": "[INSTALLDIR]\\rcagent.exe -a uninstall",
+      "command": "cmd /c sc.exe stop rcagent",
+      "when": "uninstall",
+      "execute": "immediate"
+    },
+    {
+      "command": "cmd /c [INSTALLDIR]\\rcagent.exe -a uninstall",
       "when": "uninstall"
     }
   ]
