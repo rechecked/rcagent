@@ -64,8 +64,7 @@
     },
     {
       "command": "cmd /c sc.exe stop rcagent",
-      "when": "uninstall",
-      "execute": "immediate"
+      "when": "uninstall"
     },
     {
       "command": "cmd /c [INSTALLDIR]\\rcagent.exe -a uninstall",
