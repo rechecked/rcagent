@@ -60,7 +60,8 @@
   "hooks": [
     {
       "command": "[INSTALLDIR]\\rcagent.exe -a install",
-      "when": "install"
+      "when": "install",
+      "return": "ignore"
     },
     {
       "command": "cmd /c sc.exe stop rcagent",
@@ -70,7 +71,8 @@
     },
     {
       "command": "[INSTALLDIR]\\rcagent.exe -a uninstall",
-      "when": "uninstall"
+      "when": "uninstall",
+      "return": "ignore"
     }
   ]
 }
