@@ -130,7 +130,9 @@ jobs:
           go-version: 1.19
 
       - name: Setup Prereqs
-        run: DEBIAN_FRONTEND=noninteractive apt-get update -y && apt-get install -y alien make
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
 
       - name: Build & Test
         run: make build && make test
