@@ -6,6 +6,7 @@ import (
     "flag"
     "log"
     "os"
+    "runtime"
     "embed"
     "github.com/kardianos/service"
     "github.com/rechecked/rcagent/internal/server"
