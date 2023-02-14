@@ -58,10 +58,6 @@
       "when": "install"
     },
     {
-      "command": "sc.exe start rcagent",
-      "when": "install"
-    },
-    {
       "command": "[INSTALLDIR]\\rcagent.exe -a uninstall",
       "when": "uninstall"
     }
