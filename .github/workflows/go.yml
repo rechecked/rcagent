@@ -121,7 +121,7 @@ jobs:
         shell: bash
 
       - name: Build Installer
-        run: build/build_windows.bat
+        run: build/build_windows.bat ${GITHUB_SHA::6}
 
       - name: Archive Build
         uses: actions/upload-artifact@v3

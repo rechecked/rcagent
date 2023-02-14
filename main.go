@@ -55,7 +55,7 @@ func main() {
 
     // Show version and quit
     if *version {
-        log.Printf("ReChecked Agent, version %s\n", config.Version)
+        log.Printf("ReChecked Agent, version: %s\n", config.Version)
         os.Exit(0)
     }
 

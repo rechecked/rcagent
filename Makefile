@@ -1,6 +1,6 @@
 GOCMD=go
 GOTEST=$(GOCMD) test
-VERSION?=1.0.0
+VERSION?=source
 BINARY_NAME=rcagent
 DIR_NAME=rcagent-$(VERSION)
 VFLAGS=-X github.com/rechecked/rcagent/internal/config.Version=$(VERSION)

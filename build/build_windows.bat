@@ -1,6 +1,6 @@
 @ECHO OFF
 
-SET version=1.0.0
+SET version=%1
 SET curpath=%~dp0
 
 :: Install the go-msi package
@@ -19,7 +19,7 @@ ECHO Path: %curpath%
 
 :: 64bit build process
 SET GOARCH=amd64
-go build -ldflags "-X github.com/rechecked/rcagent/internal/config.PluginDir=C:\Program Files\rcagent\plugins -X github.com/rechecked/rcagent/internal/config.ConfigDir=C:\Program Files\rcagent\" -o build/bin/rcagent.exe
+go build -ldflags "-X 'github.com/rechecked/rcagent/internal/config.PluginDir=C:\Program Files\rcagent\plugins' -X 'github.com/rechecked/rcagent/internal/config.ConfigDir=C:\Program Files\rcagent\' -X 'github.com/rechecked/rcagent/internal/config.Version=%version%'" -o build/bin/rcagent.exe
 go-msi make --path build/package/wix.json --msi build/rcagent-install.msi --src build/package/templates --out %curpath%build\tmp --version %version% --arch amd64
 
 :: 32bit build process (if we need later)
