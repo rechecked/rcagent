@@ -1,6 +1,6 @@
 @ECHO OFF
 
-SET version=<VERSION
+SET /p version=<VERSION
 SET curpath=%~dp0
 
 :: Install the go-msi package
@@ -16,6 +16,7 @@ MKDIR %curpath%tmp\bin\plugins
 ::XCOPY /s /e /y "plugins" "build\tmp\plugins"
 
 ECHO Path: %curpath%
+ECHO Version: %version%
 
 :: 64bit build process
 SET GOARCH=amd64
