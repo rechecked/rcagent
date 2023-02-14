@@ -26,7 +26,7 @@ jobs:
         run: sudo apt-get install -y alien
 
       - name: Build Installer
-        run: sudo make build-deb
+        run: VERSION=${GITHUB_SHA::6} sudo make build-deb
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -48,7 +48,7 @@ jobs:
         run: make build && make test
 
       - name: Build Installer
-        run: make build-rpm
+        run: VERSION=${GITHUB_SHA::6} make build-rpm
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -70,7 +70,7 @@ jobs:
         run: make build && make test
 
       - name: Build Installer
-        run: make build-rpm
+        run: VERSION=${GITHUB_SHA::6} make build-rpm
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -95,7 +95,7 @@ jobs:
         run: |
           LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
           -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagnet" \
-          make build && make build-dmg
+          VERSION=${GITHUB_SHA::6} make build && make build-dmg
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
