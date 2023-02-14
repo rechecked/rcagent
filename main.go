@@ -59,14 +59,19 @@ func main() {
         os.Exit(0)
     }
 
+    var deps []string
+    if runtime.GOOS == "linux" {
+        deps = []string{
+            "Requires=network.target",
+            "After=network-online.target syslog.target",
+        }
+    }
+
     svcConfig := &service.Config{
         Name:        "rcagent",
         DisplayName: "RCAgent",
         Description: "ReChecked system status and monitoring agent",
-        Dependencies: []string{
-            "Requires=network.target",
-            "After=network-online.target syslog.target",
-        },
+        Dependencies: deps,
     }
 
     // Initialize config settings (no config.yml on install)
