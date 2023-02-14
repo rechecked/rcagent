@@ -204,7 +204,7 @@ jobs:
       - name: Build Dist
         run: |
           LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
-          -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagnet" \
+          -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagent" \
           make build && make build-dmg
 
       - name: Archive Build
