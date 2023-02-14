@@ -21,7 +21,6 @@ excludeFsTypes: ["aufs", "autofs", "binfmt_misc", "cgroup", "configfs",
 
 # Plugins section
 
-pluginTimeout: 59
 pluginTypes:
   # Linux
   .sh:

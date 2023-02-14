@@ -1,6 +1,6 @@
 @ECHO OFF
 
-SET version=%1
+SET version=<VERSION
 SET curpath=%~dp0
 
 :: Install the go-msi package

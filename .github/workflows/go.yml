@@ -25,8 +25,8 @@ jobs:
       - name: Setup Prereqs
         run: sudo apt-get install -y alien
 
-      - name: Build Installer
-        run: VERSION=${GITHUB_SHA::6} sudo make build-deb
+      - name: Build Dist
+        run: sudo make build-deb
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -47,8 +47,8 @@ jobs:
       - name: Build & Test
         run: make build && make test
 
-      - name: Build Installer
-        run: VERSION=${GITHUB_SHA::6} make build-rpm
+      - name: Build Dist
+        run: make build-rpm
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -69,8 +69,8 @@ jobs:
       - name: Build & Test
         run: make build && make test
 
-      - name: Build Installer
-        run: VERSION=${GITHUB_SHA::6} make build-rpm
+      - name: Build Dist
+        run: make build-rpm
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -91,11 +91,11 @@ jobs:
       - name: Build & Test
         run: make build && make test
 
-      - name: Build Installer
+      - name: Build Dist
         run: |
           LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
           -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagnet" \
-          VERSION=${GITHUB_SHA::6} make build && make build-dmg
+          make build && make build-dmg
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
@@ -120,8 +120,8 @@ jobs:
         run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Build Installer
-        run: build/build_windows.bat ${GITHUB_SHA::6}
+      - name: Build Dist
+        run: build/build_windows.bat
 
       - name: Archive Build
         uses: actions/upload-artifact@v3
