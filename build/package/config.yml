@@ -10,6 +10,7 @@ tls:
   key: adhoc # location of .key file, adhoc will create a sel-signed cert
 
 defaultUnits: GiB # GiB = 1024 MiB, GB = 1000 MB
+debug: false
 
 # Exclude file types from disks output
 excludeFsTypes: ["aufs", "autofs", "binfmt_misc", "cgroup", "configfs",

@@ -3,7 +3,6 @@
 package status
 
 import (
-    "fmt"
     "strings"
     "github.com/go-cmd/cmd"
 )
