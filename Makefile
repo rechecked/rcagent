@@ -3,10 +3,11 @@ GOTEST=$(GOCMD) test
 VERSION?=$(shell cat VERSION)
 BINARY_NAME=rcagent
 DIR_NAME=rcagent-$(VERSION)
+LOCAL_DIR=/usr/local/rcagent
 VFLAGS=-X github.com/rechecked/rcagent/internal/config.Version=$(VERSION)
 LDFLAGS?=
 
-.PHONY: build test clean
+.PHONY: build test clean install
 
 all: help
 
@@ -35,6 +36,11 @@ build-dmg:
 	cp build/package/macos/uninstall.sh build/$(DIR_NAME)/uninstall.sh
 	cd build && hdiutil create -volname $(DIR_NAME) -srcfolder $(DIR_NAME) -ov -format UDZO $(DIR_NAME).dmg
 
+install:
+	mkdir -p $(LOCAL_DIR)/plugins
+	cp -f build/bin/$(BINARY_NAME) $(LOCAL_DIR)/$(BINARY_NAME)
+	cp -n build/package/config.yml $(LOCAL_DIR)/config.yml
+
 test:
 	$(GOTEST) -v ./...
 
@@ -50,6 +56,8 @@ help:
 	@echo ''
 	@echo 'Targets:'
 	@echo '  build 			build the binary'
+	@echo ''
+	@echo '  install        install rcagent into /usr/local'
 	@echo ''
 	@echo '  build-rpm		build rpm package'
 	@echo '  build-deb		build deb package'
