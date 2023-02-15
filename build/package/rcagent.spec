@@ -50,16 +50,22 @@ getent passwd rcagent >/dev/null || \
 
 %post
 %{_sbindir}/%{name} -a install &> /dev/null
-%systemd_post %{name}.service &> /dev/null
+if command -v systemctl > /dev/null
+then
+	systemctl disable %{name}.service &> /dev/null
+fi
 
 %preun
-%systemd_preun %{name}.service
+# On uninstall stop before removing
+if [ "$1" != "1" ]
+then
+	systemctl stop %{name}.service &> /dev/null
+fi
 %{_sbindir}/%{name} -a uninstall &> /dev/null
 
 %files
 %config(noreplace) %{_sysconfdir}/%{name}/config.yml
 %{_sbindir}/%{name}
-
 
 %dir %{_libdir}/%{name}/plugins
 
