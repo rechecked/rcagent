@@ -35,7 +35,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian-build
+            name: ubuntu22-build
             path: build/rcagent_*.deb
 
   build_ubuntu20:
@@ -64,7 +64,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian-build
+            name: ubuntu20-build
             path: build/rcagent_*.deb
 
   build_ubuntu18:
@@ -93,7 +93,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian-build
+            name: ubuntu18-build
             path: build/rcagent_*.deb
 
   build_debian11:
@@ -122,7 +122,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian-build
+            name: debian11-build
             path: build/rcagent_*.deb
 
   build_debian10:
@@ -151,7 +151,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian-build
+            name: debian10-build
             path: build/rcagent_*.deb
 
   build_centos_el9:
