@@ -1,139 +1,138 @@
-
 package sender
 
 import (
-    "net/http"
-    "net/url"
-    "io/ioutil"
-    "github.com/tidwall/gjson"
-    "encoding/json"
-    "errors"
-    "fmt"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/tidwall/gjson"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
 type NRDPServer struct {
-    Name  string
-    Url   string
-    Token string
+	Name  string
+	Url   string
+	Token string
 }
 
 type NRDPResponse struct {
-    Status  int
-    Message string
-    Output  string
+	Status  int
+	Message string
+	Output  string
 }
 
 type NRDPObjectType struct {
-    Type string `json:"type"`
+	Type string `json:"type"`
 }
 
 type NRDPCheckResult struct {
-    Checkresult NRDPObjectType `json:"checkresult"`
-    Hostname    string         `json:"hostname"`
-    Servicename string         `json:"servicename,omitempty"`
-    State       int            `json:"state"`
-    Output      string         `json:"output"`
+	Checkresult NRDPObjectType `json:"checkresult"`
+	Hostname    string         `json:"hostname"`
+	Servicename string         `json:"servicename,omitempty"`
+	State       int            `json:"state"`
+	Output      string         `json:"output"`
 }
 
 // Create a new NRDPServer and verify the url
 func (n *NRDPServer) SetConn(u, token string) error {
 
-    if _, err := url.ParseRequestURI(u); err != nil {
-        return err
-    }
-    n.Url = u
-    n.Token = token
+	if _, err := url.ParseRequestURI(u); err != nil {
+		return err
+	}
+	n.Url = u
+	n.Token = token
 
-    return nil
+	return nil
 }
 
 // Send a request to the NRDP server with any check data we want to pass
 func (n *NRDPServer) Send(checks []NRDPCheckResult) (NRDPResponse, error) {
 
-    // Create string of json for NRDP
-    res := "[]"
-    if len(checks) > 0 {
-        results, err := json.Marshal(checks)
-        if err != nil {
-            return NRDPResponse{}, err
-        }
-        res = string(results)
-    }
+	// Create string of json for NRDP
+	res := "[]"
+	if len(checks) > 0 {
+		results, err := json.Marshal(checks)
+		if err != nil {
+			return NRDPResponse{}, err
+		}
+		res = string(results)
+	}
 
-    data := url.Values{
-        "cmd": {"submitcheck"},
-        "token": {n.Token},
-        "json": {fmt.Sprintf(`{"checkresults":%s}`, res)},
-    }
+	data := url.Values{
+		"cmd":   {"submitcheck"},
+		"token": {n.Token},
+		"json":  {fmt.Sprintf(`{"checkresults":%s}`, res)},
+	}
 
-    resp, err := sendToNRDP(n.Url, data)
-    if err != nil {
-        return NRDPResponse{}, err
-    }
+	resp, err := sendToNRDP(n.Url, data)
+	if err != nil {
+		return NRDPResponse{}, err
+	}
 
-    return resp, nil
+	return resp, nil
 }
 
 // Check if NRDP server and creds are valid and return and error
 // if they are not...
 func (n *NRDPServer) TestConn() error {
 
-    data := url.Values{
-        "cmd": {"submitcheck"},
-        "token": {n.Token},
-        "json": {`{"checkresults":[]}`},
-    }
+	data := url.Values{
+		"cmd":   {"submitcheck"},
+		"token": {n.Token},
+		"json":  {`{"checkresults":[]}`},
+	}
 
-    resp, err := http.PostForm(n.Url, data)
-    if err != nil {
-        return err
-    }
-    defer resp.Body.Close()
+	resp, err := http.PostForm(n.Url, data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return err
-    }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 
-    status := gjson.GetBytes(body, "result.status")
-    message := gjson.GetBytes(body, "result.message")
-    if status.Int() == 0 && message.String() == "OK" {
-        return nil
-    }
+	status := gjson.GetBytes(body, "result.status")
+	message := gjson.GetBytes(body, "result.message")
+	if status.Int() == 0 && message.String() == "OK" {
+		return nil
+	}
 
-    return errors.New("Could not validate message")
+	return errors.New("Could not validate message")
 }
 
 func (n *NRDPServer) String() string {
-    return fmt.Sprintf("%s", n.Url)
+	return fmt.Sprintf("%s", n.Url)
 }
 
 func (n *NRDPResponse) String() string {
-    return fmt.Sprintf("Status: %d | Message: %s | Meta Output: %s", n.Status, n.Message, n.Output)
+	return fmt.Sprintf("Status: %d | Message: %s | Meta Output: %s", n.Status, n.Message, n.Output)
 }
 
 func sendToNRDP(url string, data url.Values) (NRDPResponse, error) {
 
-    resp, err := http.PostForm(url, data)
-    if err != nil {
-        return NRDPResponse{}, err
-    }
-    defer resp.Body.Close()
+	resp, err := http.PostForm(url, data)
+	if err != nil {
+		return NRDPResponse{}, err
+	}
+	defer resp.Body.Close()
 
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return NRDPResponse{}, err
-    }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return NRDPResponse{}, err
+	}
 
-    status := gjson.GetBytes(body, "result.status")
-    message := gjson.GetBytes(body, "result.message")
-    output := gjson.GetBytes(body, "result.meta.output")
+	status := gjson.GetBytes(body, "result.status")
+	message := gjson.GetBytes(body, "result.message")
+	output := gjson.GetBytes(body, "result.meta.output")
 
-    n := NRDPResponse{
-        Status: int(status.Int()),
-        Message: message.String(),
-        Output: output.String(),
-    }
+	n := NRDPResponse{
+		Status:  int(status.Int()),
+		Message: message.String(),
+		Output:  output.String(),
+	}
 
-    return n, nil
+	return n, nil
 }
