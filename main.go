@@ -46,6 +46,9 @@ var logger service.Logger
 //go:embed build/package/config.yml
 var defaultConfigFile embed.FS
 
+//go:embed VERSION
+var defaultVersion embed.FS
+
 func main() {
 
 	// All actions the service can perform
@@ -54,7 +57,8 @@ func main() {
 	version := flag.Bool("v", false, "Show version of rcagent")
 	flag.Parse()
 
-	// Show version and quit
+	// Parse/set version then show if someone does -v
+	config.ParseVersion(defaultVersion)
 	if *version {
 		log.Printf("ReChecked Agent, version: %s\n", config.Version)
 		os.Exit(0)

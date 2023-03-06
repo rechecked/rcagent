@@ -127,11 +127,10 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
+	setupHeader(&w)
 
 	var jsonData []byte
 	var err error
-
-	defer w.Header().Set("Content-Type", "application/json")
 
 	if err = r.ParseForm(); err != nil {
 		log.Error(err)
@@ -160,7 +159,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 		// of accessible endpoints to the output
 		var e []string
 		prefix, _, _ := strings.Cut(fullpath, "/")
-		for ep, _ := range endpoints {
+		for ep := range endpoints {
 			if strings.Contains(ep, prefix) {
 				e = append(e, ep)
 			}
@@ -183,7 +182,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
-	defer w.Header().Set("Content-Type", "application/json")
+	setupHeader(&w)
 	w.WriteHeader(status)
 	if status == http.StatusNotFound {
 		// Custom 404 style error
@@ -206,4 +205,9 @@ func validateToken(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	return errors.New("validateToken: Could not authenticate token")
+}
+
+func setupHeader(w *http.ResponseWriter) {
+	(*w).Header().Set("Content-Type", "application/json")
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
