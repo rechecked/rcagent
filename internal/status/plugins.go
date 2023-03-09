@@ -159,7 +159,7 @@ func HandlePlugins(cv config.Values) interface{} {
 
 func getPlugins() ([]string, error) {
 
-	var plugins []string
+	plugins := []string{}
 
 	files, err := ioutil.ReadDir(config.Settings.PluginDir)
 	if err != nil {
