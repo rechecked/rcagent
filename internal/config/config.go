@@ -166,6 +166,15 @@ func ParseFile(file string, defaultFile embed.FS) error {
 	return nil
 }
 
+// Set the version to the version in the VERSION file if it doesn't
+// already exist during build time (this is mostly for DEV)
+func ParseVersion(versionFile embed.FS) {
+	v, _ := versionFile.ReadFile("VERSION");
+	if Version == "" {
+		Version = string(v)
+	}
+}
+
 // Function to look for the config file in the normal locations
 // that it could be on standard systems
 func findConfig() (string, error) {
