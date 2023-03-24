@@ -6,6 +6,8 @@ ReChecked Agent (rcagent) is light-weight, cross-platform, API-based agent that 
 
 We currently build for: Windows, macOS (12+), CentOS Stream/RHEL (8+), Debian (10+), Ubuntu (18+ LTS)
 
+We recommend [using the repo install](https://repo.rechecked.io/) for CentOS/RHEL, Debian, and Ubuntu.
+
 Download from [GitHub releases](https://github.com/rechecked/rcagent/releases) or [download from rechecked.io](https://rechecked.io/download)
 
 ### For Source Install
