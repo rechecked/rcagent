@@ -6,6 +6,9 @@ import (
 )
 
 func HandleDocker(cv config.Values) interface{} {
-	dockerIds, _ := docker.GetDockerIDList()
+	dockerIds, err := docker.GetDockerIDList()
+	if err != nil {
+		return []string{}
+	}
 	return dockerIds
 }

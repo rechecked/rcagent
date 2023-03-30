@@ -72,7 +72,6 @@ func setupEndpoints() {
 	endpointFunc("memory/swap", status.HandleSwap)
 	endpointFunc("cpu/percent", status.HandleCPU)
 	endpointFunc("disk", status.HandleDisks)
-	//endpointFunc("docker", status.HandleDocker)
 	endpointFunc("services", status.HandleServices)
 	endpointFunc("processes", status.HandleProcesses)
 	endpointFunc("plugins", status.HandlePlugins)
@@ -85,6 +84,7 @@ func setupEndpoints() {
 	if runtime.GOOS != "windows" {
 		endpointFunc("load", status.HandleLoad)
 		endpointFunc("disk/inodes", status.HandleInodes)
+		//endpointFunc("docker", status.HandleDocker)
 	}
 
 	// Windows only

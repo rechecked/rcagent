@@ -1,3 +1,8 @@
+03/29/2023 - 1.0.2
+==================
+- Fixed issue with windows services not having proper status (#22)
+- Fixed empty windows services JSON output to be [] instead of null
+
 03/10/2023 - 1.0.1
 ==================
 - Added Access-Control-Allow-Origin header for CORS requests

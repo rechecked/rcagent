@@ -22,7 +22,7 @@ func (s Service) CheckValue() string {
 func HandleServices(cv config.Values) interface{} {
 	svcs, err := getServices()
 	if err != nil {
-		return nil
+		return []string{}
 	}
 
 	// Filter services
