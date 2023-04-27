@@ -2,16 +2,21 @@ package status
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/shirou/gopsutil/v3/process"
-	"strings"
 )
 
 type Process struct {
-	Name    string `json:"name"`
-	PID     int32  `json:"pid"`
-	Exe     string `json:"exe"`
-	Cmdline string `json:"cmdline"`
+	Name       string   `json:"name"`
+	PID        int32    `json:"pid"`
+	Exe        string   `json:"exe"`
+	Cmdline    string   `json:"cmdline"`
+	Username   string   `json:"username"`
+	CPUPercent float64  `json:"cpuPercent"`
+	MemPercent float64  `json:"memPercent"`
+	Status     []string `json:"status"`
 }
 
 type ProcessList struct {
@@ -45,16 +50,24 @@ func HandleProcesses(cv config.Values) interface{} {
 		name, _ := p.Name()
 		exe, _ := p.Exe()
 		cmdline, _ := p.Cmdline()
+		username, _ := p.Username()
+		cpuPercent, _ := p.CPUPercent()
+		memPercent, _ := p.MemoryPercent()
+		status, _ := p.Status()
 		if cv.Name != "" {
 			if name != cv.Name {
 				continue
 			}
 		}
 		procs = append(procs, Process{
-			Name:    name,
-			Exe:     exe,
-			Cmdline: cmdline,
-			PID:     p.Pid,
+			Name:     name,
+			Exe:      exe,
+			Cmdline:  cmdline,
+			PID:      p.Pid,
+			Username: username,
+			CPUPercent: cpuPercent,
+			MemPercent: float64(memPercent),
+			Status: status,
 		})
 	}
 

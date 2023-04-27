@@ -28,7 +28,7 @@ func Run() {
 		return
 	}
 
-	// Tick ever second and check for any passive checks we need
+	// Tick every second and check for any passive checks we need
 	// to send, then process them and continue... until program exit
 	c := time.Tick(1 * time.Second)
 	for range c {

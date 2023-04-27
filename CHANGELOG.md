@@ -1,3 +1,7 @@
+04/23/2023 - 1.0.3
+==================
+- Added cpuPercent and memPercent to processes output (#14)
+
 03/29/2023 - 1.0.2
 ==================
 - Fixed issue with windows services not having proper status (#22)
