@@ -169,7 +169,7 @@ func ParseFile(file string, defaultFile embed.FS) error {
 // Set the version to the version in the VERSION file if it doesn't
 // already exist during build time (this is mostly for DEV)
 func ParseVersion(versionFile embed.FS) {
-	v, _ := versionFile.ReadFile("VERSION");
+	v, _ := versionFile.ReadFile("VERSION")
 	if Version == "" {
 		Version = string(v)
 	}

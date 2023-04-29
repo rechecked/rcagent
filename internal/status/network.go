@@ -20,6 +20,13 @@ type Interface struct {
 }
 
 type InterfaceDelta struct {
+	HardwareAddr string
+	Addrs        net.InterfaceAddrList `json:"addrs"`
+	net.IOCountersStat
+	InterfaceDeltaStat
+}
+
+type InterfaceDeltaStat struct {
 	Name       string  `json:"name"`
 	OutTotal   float64 `json:"outTotal"`
 	OutPerSec  float64 `json:"outPerSec"`
@@ -30,7 +37,7 @@ type InterfaceDelta struct {
 	checkValue float64
 }
 
-func (i InterfaceDelta) String() string {
+func (i InterfaceDeltaStat) String() string {
 	if i.checkType == "in" {
 		return fmt.Sprintf("Current inbound traffic %0.2f %s/s",
 			i.checkValue, i.Units)
@@ -43,11 +50,11 @@ func (i InterfaceDelta) String() string {
 		i.checkValue, i.Units)
 }
 
-func (i InterfaceDelta) CheckValue() float64 {
+func (i InterfaceDeltaStat) CheckValue() float64 {
 	return i.checkValue
 }
 
-func (i InterfaceDelta) PerfData(warn, crit string) string {
+func (i InterfaceDeltaStat) PerfData(warn, crit string) string {
 	var perfdata []string
 	var data string
 
@@ -97,45 +104,39 @@ func HandleNetworks(cv config.Values) interface{} {
 		// If delta is passed, get the old value and adjust it
 		// based on amount of seconds passed
 		if cv.Delta > 0 {
-			tmpItr := getInterfaceStats(cv.Name)
-			timeSince := itr.stored.Sub(tmpItr.stored)
-
-			dOut := itr.BytesRecv - tmpItr.BytesRecv
-			in := float64(dOut) / timeSince.Seconds()
-			inPs := ConvertToUnit(uint64(in), cv.Units())
-			dIn := itr.BytesSent - tmpItr.BytesSent
-			out := float64(dIn) / timeSince.Seconds()
-			outPs := ConvertToUnit(uint64(out), cv.Units())
-
-			// Get check value
-			var cVal float64
-			if cv.Against == "in" {
-				cVal = inPs
-			} else if cv.Against == "out" {
-				cVal = outPs
-			} else {
-				cv.Against = "total"
-				cVal = inPs + outPs
-			}
-
-			deltaItr := InterfaceDelta{
-				Name:       itr.Name,
-				OutTotal:   ConvertToUnit(dOut, cv.Units()),
-				OutPerSec:  outPs,
-				InTotal:    ConvertToUnit(dIn, cv.Units()),
-				InPerSec:   inPs,
-				Units:      cv.Units(),
-				checkType:  cv.Against,
-				checkValue: cVal,
-			}
-
-			// Save the current itr for later
-			setInterfaceStats(itr)
-
+			deltaItr := getInterfaceDeltaStat(itr, cv)
 			return deltaItr
 		}
 
 		return itr
+	}
+
+	// If delta, we need the InterfaceDeltaStat added to the interfaces
+	if cv.Delta > 0 {
+		var ifDeltaList []InterfaceDelta
+		for _, i := range ifs {
+			deltaItr := getInterfaceDeltaStat(i, cv)
+			ifDeltaList = append(ifDeltaList, InterfaceDelta{
+				i.HardwareAddr,
+				i.Addrs,
+				net.IOCountersStat{
+					Name:        i.Name,
+					BytesSent:   i.BytesSent,
+					BytesRecv:   i.BytesRecv,
+					PacketsSent: i.PacketsSent,
+					PacketsRecv: i.PacketsRecv,
+					Errin:       i.Errin,
+					Errout:      i.Errout,
+					Dropin:      i.Dropin,
+					Dropout:     i.Dropout,
+					Fifoin:      i.Fifoin,
+					Fifoout:     i.Fifoout,
+				},
+				deltaItr,
+			})
+		}
+
+		return ifDeltaList
 	}
 
 	return ifs
@@ -163,4 +164,43 @@ func getNetworkIfs() ([]Interface, error) {
 	}
 
 	return ifList, nil
+}
+
+func getInterfaceDeltaStat(itr Interface, cv config.Values) InterfaceDeltaStat {
+	tmpItr := getInterfaceStats(itr.Name)
+	timeSince := itr.stored.Sub(tmpItr.stored)
+
+	dOut := itr.BytesRecv - tmpItr.BytesRecv
+	in := float64(dOut) / timeSince.Seconds()
+	inPs := ConvertToUnit(uint64(in), cv.Units())
+	dIn := itr.BytesSent - tmpItr.BytesSent
+	out := float64(dIn) / timeSince.Seconds()
+	outPs := ConvertToUnit(uint64(out), cv.Units())
+
+	// Get check value
+	var cVal float64
+	if cv.Against == "in" {
+		cVal = inPs
+	} else if cv.Against == "out" {
+		cVal = outPs
+	} else {
+		cv.Against = "total"
+		cVal = inPs + outPs
+	}
+
+	deltaItr := InterfaceDeltaStat{
+		Name:       itr.Name,
+		OutTotal:   ConvertToUnit(dOut, cv.Units()),
+		OutPerSec:  outPs,
+		InTotal:    ConvertToUnit(dIn, cv.Units()),
+		InPerSec:   inPs,
+		Units:      cv.Units(),
+		checkType:  cv.Against,
+		checkValue: cVal,
+	}
+
+	// Save the current itr for later
+	setInterfaceStats(itr)
+
+	return deltaItr
 }

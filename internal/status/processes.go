@@ -60,14 +60,14 @@ func HandleProcesses(cv config.Values) interface{} {
 			}
 		}
 		procs = append(procs, Process{
-			Name:     name,
-			Exe:      exe,
-			Cmdline:  cmdline,
-			PID:      p.Pid,
-			Username: username,
+			Name:       name,
+			Exe:        exe,
+			Cmdline:    cmdline,
+			PID:        p.Pid,
+			Username:   username,
 			CPUPercent: cpuPercent,
 			MemPercent: float64(memPercent),
-			Status: status,
+			Status:     status,
 		})
 	}
 
