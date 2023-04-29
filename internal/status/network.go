@@ -27,7 +27,6 @@ type InterfaceDelta struct {
 }
 
 type InterfaceDeltaStat struct {
-	Name       string  `json:"name"`
 	OutTotal   float64 `json:"outTotal"`
 	OutPerSec  float64 `json:"outPerSec"`
 	InTotal    float64 `json:"inTotal"`
@@ -189,7 +188,6 @@ func getInterfaceDeltaStat(itr Interface, cv config.Values) InterfaceDeltaStat {
 	}
 
 	deltaItr := InterfaceDeltaStat{
-		Name:       itr.Name,
 		OutTotal:   ConvertToUnit(dOut, cv.Units()),
 		OutPerSec:  outPs,
 		InTotal:    ConvertToUnit(dIn, cv.Units()),
