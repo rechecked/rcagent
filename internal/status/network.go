@@ -20,7 +20,7 @@ type Interface struct {
 }
 
 type InterfaceDelta struct {
-	HardwareAddr string
+	HardwareAddr string                `json:"hardwareAddr"`
 	Addrs        net.InterfaceAddrList `json:"addrs"`
 	net.IOCountersStat
 	InterfaceDeltaStat
