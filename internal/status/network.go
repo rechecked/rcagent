@@ -103,7 +103,7 @@ func HandleNetworks(cv config.Values) interface{} {
 
 		// If delta is passed, get the old value and adjust it
 		// based on amount of seconds passed
-		if cv.Delta > 0 {
+		if cv.Delta > 0 || cv.Check {
 			deltaItr := getInterfaceDeltaStat(itr, cv)
 			return deltaItr
 		}
