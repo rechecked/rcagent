@@ -78,13 +78,14 @@ func GetCheckAgainstResult(chk CheckableAgainst, e string) CheckResult {
 	}
 }
 
-func createPerfData(p, w, c string) string {
+func createPerfData(pre, w, c string) string {
 	var perf []string
-	if p != "" {
-		perf = append(perf, p)
-	}
+	perf = append(perf, pre)
 	if w != "" {
 		perf = append(perf, w)
+	} else if c != "" {
+		// Still add the ; if we are going to be adding a critical value
+		perf = append(perf, "");
 	}
 	if c != "" {
 		perf = append(perf, c)

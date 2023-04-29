@@ -3,6 +3,7 @@
 - Added cpuPercent and memPercent to processes output (#14)
 - Added delta values to the network output when delta=1 parameter passed
 - Fixed network check where delta was not applied causing check to not run unless delta was passed
+- Fixed perfdata output for warn/crit values missing the ; when only critical is set (#16)
 
 03/29/2023 - 1.0.2
 ==================
