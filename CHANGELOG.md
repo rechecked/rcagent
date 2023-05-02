@@ -1,4 +1,4 @@
-04/30/2023 - 1.0.3
+05/01/2023 - 1.0.3
 ==================
 - Added cpuPercent and memPercent to processes output (#14)
 - Added delta values to the network output when delta=1 parameter passed
