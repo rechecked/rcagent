@@ -1,0 +1,16 @@
+
+name: Release Updates
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit Version Change
+        run: |
+          curl --request GET "https://api.rechecked.io/versions?product=rcagent&action=set_latest&version=$GITHUB_REF_NAME&api_key=${{ secrets.RECHECKED_API_KEY }}"
+
