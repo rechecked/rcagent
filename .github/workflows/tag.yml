@@ -2,11 +2,11 @@
 name: Release Updates
 
 on:
-  push:
+  release:
 
 jobs:
 
-  build_ubuntu22:
+  update-version:
     runs-on: ubuntu-latest
     steps:
       - name: Submit Version Change
