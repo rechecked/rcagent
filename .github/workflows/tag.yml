@@ -3,6 +3,7 @@ name: Release Updates
 
 on:
   release:
+    types: [published]
 
 jobs:
 
