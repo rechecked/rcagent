@@ -5,13 +5,16 @@ package main
 import (
 	"embed"
 	"flag"
-	"github.com/kardianos/service"
-	"github.com/rechecked/rcagent/internal/config"
-	"github.com/rechecked/rcagent/internal/sender"
-	"github.com/rechecked/rcagent/internal/server"
 	"log"
 	"os"
 	"runtime"
+
+	"github.com/kardianos/service"
+
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/manager"
+	"github.com/rechecked/rcagent/internal/sender"
+	"github.com/rechecked/rcagent/internal/server"
 )
 
 type program struct {
@@ -31,6 +34,9 @@ func (p *program) run() error {
 
 	// If we have a sender (passive checks)
 	go sender.Run()
+
+	// Connect to the manager for sync
+	go manager.Run()
 
 	// Do work here
 	return nil

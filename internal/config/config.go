@@ -28,6 +28,7 @@ type settings struct {
 	Debug            bool                `yaml:"debug"`
 	Senders          []SenderCfg         `yaml:"senders"`
 	PassiveChecks    []CheckCfg          `yaml:"checks"`
+	Manager          ManagerCfg          `yaml:"manager"`
 }
 
 type SenderCfg struct {
@@ -45,6 +46,12 @@ type CheckCfg struct {
 	Options     Values `yaml:"options"`
 	Disabled    bool
 	NextRun     time.Time
+}
+
+type ManagerCfg struct {
+	Url        string `yaml:"url"`
+	APIKey     string `yaml:"apikey"`
+	IgnoreCert bool   `yaml:"ignoreCert"`
 }
 
 type Values struct {

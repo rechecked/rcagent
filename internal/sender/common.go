@@ -8,12 +8,15 @@ import (
 	"time"
 )
 
+// Save passive checks where we can edit them
+var Checks []config.CheckCfg
+
 // Set up passive related loop
 func Run() {
 
 	// Verify we have checks to run...
-	checks := config.Settings.PassiveChecks
-	if len(checks) == 0 {
+	Checks = config.Settings.PassiveChecks
+	if len(Checks) == 0 {
 		if config.Settings.Debug {
 			fmt.Print("Stopping senders: No checks configured\n")
 		}
@@ -33,7 +36,7 @@ func Run() {
 	c := time.Tick(1 * time.Second)
 	for range c {
 		now := time.Now()
-		for i, check := range checks {
+		for i, check := range Checks {
 			if check.Disabled || check.NextRun.After(now) {
 				continue
 			}
@@ -47,9 +50,9 @@ func Run() {
 				}
 				fmt.Printf("The interval for '%s - %s' is invalid, disabling",
 					check.Hostname, check.Servicename)
-				checks[i].Disabled = true
+				Checks[i].Disabled = true
 			}
-			checks[i].NextRun = now.Add(dur)
+			Checks[i].NextRun = now.Add(dur)
 
 			// Run the check and get the value data back, try to send it off if we can
 			data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
@@ -65,7 +68,7 @@ func Run() {
 			} else {
 				fmt.Printf("The check for '%s - %s' is invalid, check endpoints and options, disabling",
 					check.Hostname, check.Servicename)
-				checks[i].Disabled = true
+				Checks[i].Disabled = true
 			}
 		}
 	}

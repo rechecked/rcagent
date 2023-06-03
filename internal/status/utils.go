@@ -85,7 +85,7 @@ func createPerfData(pre, w, c string) string {
 		perf = append(perf, w)
 	} else if c != "" {
 		// Still add the ; if we are going to be adding a critical value
-		perf = append(perf, "");
+		perf = append(perf, "")
 	}
 	if c != "" {
 		perf = append(perf, c)
