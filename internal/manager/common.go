@@ -23,7 +23,6 @@ func Run() {
 		return
 	}
 
-	checkin()
 	c := time.Tick(1 * time.Minute)
 	for range c {
 		checkin()
@@ -31,9 +30,9 @@ func Run() {
 
 }
 
-// Send some basic data to the manager to "check in" with it, indicating
-// that the agent is running, accessible, and provides feedback on current status
-func checkin() {
+// Do inital registration when the agent starts up... send basic data and if we
+// need to get a certificate we do that now.
+func Register() {
 
 	hostname, _ := os.Hostname()
 	machineId, _ := machineid.ProtectedID("rcagent")
@@ -44,6 +43,17 @@ func checkin() {
 	}
 
 	fmt.Println(data)
+
+	err := sendPost("agents/register", data)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+// Send some basic data to the manager to "check in" with it, indicating
+// that the agent is running, accessible, and provides feedback on current status
+func checkin() {
 
 }
 
@@ -69,10 +79,10 @@ func sendPost(path string, data map[string]string) error {
 
 	postBody, _ := json.Marshal(data)
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(postBody))
-	defer resp.Body.Close()
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	return nil
 }

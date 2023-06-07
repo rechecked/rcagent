@@ -46,6 +46,9 @@ func Run(l service.Logger) {
 		}
 	}
 
+	// Create server with config so we can restart it later
+	srv := &http.Server{Addr: host}
+
 	setupEndpoints()
 
 	// Add handlers and run server with config
@@ -54,9 +57,9 @@ func Run(l service.Logger) {
 
 	var err error
 	if config.Settings.TLS.Cert != "" && config.Settings.TLS.Key != "" {
-		err = http.ListenAndServeTLS(host, config.Settings.TLS.Cert, config.Settings.TLS.Key, nil)
+		err = srv.ListenAndServeTLS(config.Settings.TLS.Cert, config.Settings.TLS.Key)
 	} else {
-		err = http.ListenAndServe(host, nil)
+		err = srv.ListenAndServe()
 	}
 	if err != nil {
 		log.Error(err)

@@ -29,6 +29,9 @@ func (p *program) Start(s service.Service) error {
 
 func (p *program) run() error {
 
+	// Register with the manager on startup, since we may need a certificate
+	manager.Register()
+
 	// Set up server configuration and run
 	go server.Run(logger)
 
