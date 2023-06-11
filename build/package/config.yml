@@ -76,5 +76,5 @@ pluginTypes:
 # Config for RC Manager
 # Note: url can be skipped or blank if using manage.rechecked.io
 manager:
-  url: https://localhost:8000
+  url: https://localhost:8080
   apikey: 5E51781D7FFF4E0AA757132B017AAC88

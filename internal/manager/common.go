@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/denisbrodbeck/machineid"
+	"github.com/shirou/gopsutil/v3/host"
 
 	"github.com/rechecked/rcagent/internal/config"
 )
@@ -36,10 +37,16 @@ func Register() {
 
 	hostname, _ := os.Hostname()
 	machineId, _ := machineid.ProtectedID("rcagent")
+	host, _ := host.Info()
 
 	data := map[string]string{
 		"hostname": hostname,
 		"machineId": machineId,
+		"address": getOutboundIP(),
+		"version": config.Version,
+		"os": host.OS,
+		"platform": host.Platform,
+
 	}
 
 	fmt.Println(data)
@@ -78,7 +85,15 @@ func sendPost(path string, data map[string]string) error {
 	client := &http.Client{Transport: tr}
 
 	postBody, _ := json.Marshal(data)
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(postBody))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(postBody))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("X-API-Key", config.Settings.Manager.APIKey)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
