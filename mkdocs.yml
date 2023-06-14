@@ -1,0 +1,56 @@
+site_name: ReChecked Agent Docs
+site_author: ReChecked, Jake Omann
+site_description: >-
+  Technical documentation for ReChecked Agent (rcagent), quick start guide, how
+  to use the plugin, agent, and Nagios XI config wizard.
+
+repo_name: rcagent
+repo_url: https://github.com/rechecked/rcagent
+
+copyright: Copyright &copy; 2023 <a href="https://rechecked.io">ReChecked</a>
+extra:
+  generator: false
+
+theme:
+  name: material
+  language: en
+  logo: assets/rechecked-white.png
+  favicon: assets/favicon.ico
+  palette:
+    primary: deep orange
+    accent: deep orange
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.tracking
+    - navigation.expand
+    #- toc.integrate
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+
+plugins:
+  - offline:
+      enabled: !ENV [OFFLINE, false]
+  - search
+
+nav:
+  - Introduction: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Configuration: getting-started/configuration.md
+    - Nagios XI: getting-started/nagios-xi.md
+  - Checks:
+    - Active Checks: checks/active-checks.md
+    - Passive Checks: checks/passive-checks.md
+  - Status API Reference:
+    - CPU: status-api/cpu.md
+    - Memory: status-api/memory.md
+  - Config File Reference:
+    - Overview: config/overview.md
+    - Config Sections:
+      - Main: config/main.md
+      - Plugins: config/plugins.md
+      - Checks: config/checks.md
+      - Manager: config/manager.md
