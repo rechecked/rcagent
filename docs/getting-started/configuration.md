@@ -1,22 +1,42 @@
 # Configuration
 
-## Main Config File
+After agent install, the agent will run if started with the defaults. However, you should always change the [security token](#security-token). Changes to the `config.yml` file requires an agent restart.
+
+## Main Config File (`config.yml`)
 
 The agent uses YAML configuration files to define it's main config and also define senders, checks, and other details about passive checks. Depending on the system you are running on and where you installed rcagent, the file will be in a different directory. The default directories are:
 
-- Linux: /etc/rcagent/config.yml
-- Windows: C:\Program Files\rcagent\config.yml
-- MacOS: /etc/rcagent/config.yml
+=== "Linux"
 
-To get started, all you have to do for now is change the token value to something secure and private. By default the token is **private**.
+	```
+	/etc/rcagent/config.yml
+	```
+
+=== "Windows"
+
+	```
+	C:\Program Files\rcagent\config.yml
+	```
+
+=== "macOS"
+
+	```
+	/etc/rcagent/config.yml
+	```
+
+!!! note
+
+	Changes made to the `config.yml` file will only be applied when the agent is restarted.
+
+### Security Token
+
+This is the token you will pass with the URL to be able to access the Status API. You should always change the security token. By default the token is **private**.
+
+You can edit the token in the [`config.yml`](#main-config-file-configyml) file:
 
 ```
 token: private # <=== CHANGE THIS ====
 ```
-
-Replace the token with whatever value you’d like. Refer back to step one to start the service and enable it if you haven’t already.
-
-For a full list of values you can use in the configuration, check the configuration file options documentation.
 
 ## Check Configuration
 
@@ -26,9 +46,7 @@ Now that the agent has been installed and you have a secure token, we can set up
 
 #### Manual
 
-You can manually run active checks using the `check_rcagent.py` script.
-
-
+You can manually run active checks using the `check_rcagent.py` script. [See examples and how to use the plugin.](../../checks/active-checks/#using-check_rcagentpy)
 
 #### Nagios XI
 
@@ -44,8 +62,8 @@ You’ll need to make a command first, in your commands.cfg file. Normally this 
 
 ```
 define command {
-    command_name    check_rcagent
-    command_line    $USER1$/check_rcagent.py -H $HOSTADDRESS$ $ARG1$
+	command_name    check_rcagent
+	command_line    $USER1$/check_rcagent.py -H $HOSTADDRESS$ $ARG1$
 }
 ```
 
@@ -55,49 +73,49 @@ Then you’ll be able to create hosts and services, the below is an example of a
 
 ```
 define host {
-    host_name               RCAgent Test Host
-    address                 192.168.1.100
-    check_command           check_rcagent!-t private -e system/version
-    max_check_attempts      5
-    check_interval          5
-    retry_interval          1
-    check_period            24x7
-    contacts                admin
-    notification_interval   60
-    notification_period     24x7
-    notifications_enabled   1
-    icon_image              rcagent.png
-    statusmap_image         rcagent.png
-    register                1
+	host_name               RCAgent Test Host
+	address                 192.168.1.100
+	check_command           check_rcagent!-t private -e system/version
+	max_check_attempts      5
+	check_interval          5
+	retry_interval          1
+	check_period            24x7
+	contacts                admin
+	notification_interval   60
+	notification_period     24x7
+	notifications_enabled   1
+	icon_image              rcagent.png
+	statusmap_image         rcagent.png
+	register                1
 }
 
 define service {
-    host_name               RCAgent Test Host
-    service_description     CPU Usage
-    check_command           check_rcagent!-t private -e cpu/percent -w 20 -c 40
-    max_check_attempts      5
-    check_interval          5
-    retry_interval          1
-    check_period            24x7
-    notification_interval   60
-    notification_period     24x7
-    contacts                admin
-    register                1
+	host_name               RCAgent Test Host
+	service_description     CPU Usage
+	check_command           check_rcagent!-t private -e cpu/percent -w 20 -c 40
+	max_check_attempts      5
+	check_interval          5
+	retry_interval          1
+	check_period            24x7
+	notification_interval   60
+	notification_period     24x7
+	contacts                admin
+	register                1
 }
 ```
 
 ### Passive Checks
 
-You can add individual passive checks to be sent over NRDP by adding the following to your `config.yml`.
+You can add individual passive checks to be sent over NRDP by adding the following to your [`config.yml`](#main-config-file-configyml).
 
 Create a senders section and add the NRDP server to send to with the token:
 
 ```
 senders:
   - name: NRDP Server 1
-    url: http://<ip>/nrdp/
-    token: <token>
-    type: nrdp
+	url: http://<ip>/nrdp/
+	token: <token>
+	type: nrdp
 ```
 
 !!! note
@@ -109,18 +127,18 @@ Next, set up the passive checks you wish to send, in this example we will send a
 ```
 checks:
   - hostname: $HOST
-    interval: 5m
-    endpoint: cpu/percent
-    options:
-      warning: 10
-      critical: 20
+	interval: 5m
+	endpoint: cpu/percent
+	options:
+	  warning: 10
+	  critical: 20
   - hostname: $HOST
-    servicename: CPU Usage
-    interval: 30s
-    endpoint: cpu/percent
-    options:
-      warning: 10
-      critical: 20
+	servicename: CPU Usage
+	interval: 30s
+	endpoint: cpu/percent
+	options:
+	  warning: 10
+	  critical: 20
 ```
 
 The $HOST variable is the hostname of the system the rcagent is running on and gets populated during runtime. The options section allows you to pass parameters just like the URL for active checks via the status API. This is why we pass warning/critical values in this way.

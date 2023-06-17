@@ -1,5 +1,6 @@
 # Installation
 
+We currently build for some of the most popular Linux distros, but we cannot build for all of them. If you don't see your distro here, you can always build it [manually from source](#other-source).
 
 ## Linux
 
@@ -24,7 +25,7 @@ sudo yum-config-manager --add-repo https://repo.rechecked.io/rpm/el$VERSION_ID/r
 
 If it says yum-config-manager not found, you will need to install yum-utils.
 
-Install the Agent
+Install the agent:
 
 ```
 sudo yum install rcagent
@@ -46,7 +47,7 @@ Add repo to apt
 echo "deb https://repo.rechecked.io/deb $(lsb_release -cs) main" > /etc/apt/sources.list.d/rechecked.list
 ```
 
-Install the Agent
+Install the agent:
 
 ```
 sudo apt-get update
@@ -73,7 +74,7 @@ sudo dpkg -i rcagent-<version>.deb
 
 ### Running the Agent
 
-The service is not set up to be enabled on restart/boot by default since it requires configuration. Once you’ve updated the config with a secure authentication token, enable it and start it:
+The service is not set up to be enabled on restart/boot by default since it requires configuration. Once you’ve updated the config with a [secure authentication token](../configuration/#security-token), enable it and start it:
 
 ```
 systemctl enable rcagent

@@ -1,4 +1,4 @@
-# CPU Status
+# CPU
 
 ## cpu/percent
 

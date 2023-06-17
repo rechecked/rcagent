@@ -17,18 +17,21 @@ theme:
   logo: assets/rechecked-white.png
   favicon: assets/favicon.ico
   palette:
-    primary: deep orange
-    accent: deep orange
+    primary: black
   features:
     - navigation.instant
     - navigation.sections
     - navigation.tracking
     - navigation.expand
     #- toc.integrate
+    - content.tabs.link
     - content.code.copy
 
 markdown_extensions:
   - admonition
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 plugins:
   - offline:
@@ -47,6 +50,13 @@ nav:
   - Status API Reference:
     - CPU: status-api/cpu.md
     - Memory: status-api/memory.md
+    - Disk: status-api/disk.md
+    - Services: status-api/services.md
+    - Processes: status-api/processes.md
+    - Plugins: status-api/plugins.md
+    - Network: status-api/network.md
+    - System: status-api/system.md
+    - Load: status-api/load.md
   - Config File Reference:
     - Overview: config/overview.md
     - Config Sections:
