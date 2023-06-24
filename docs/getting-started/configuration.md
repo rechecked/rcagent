@@ -50,7 +50,7 @@ You can manually run active checks using the `check_rcagent.py` script. [See exa
 
 #### Nagios XI
 
-If you’re running Nagios XI you can download the Nagios XI Config Wizard and install it on your system through `Admin > Manage Config Wizards > Upload & Install` and select the `rcagent.zip` config wizard file.
+If you’re running Nagios XI you can [download the latest Nagios XI Config Wizard](https://github.com/rechecked/rcagent-nagiosxi/releases/latest/download/rcagent.zip) and install it on your system through `Admin > Manage Config Wizards > Upload & Install` and select the `rcagent.zip` config wizard file.
 
 Once installed, the config wizard will let you set up active checks though an interactive interface.
 
@@ -108,7 +108,7 @@ define service {
 
 You can add individual passive checks to be sent over NRDP by adding the following to your [`config.yml`](#main-config-file-configyml).
 
-Create a senders section and add the NRDP server to send to with the token:
+Create a [senders](../../config/options#senders) section and add the NRDP server to send to with the token:
 
 ```
 senders:
@@ -143,4 +143,4 @@ checks:
 
 The $HOST variable is the hostname of the system the rcagent is running on and gets populated during runtime. The options section allows you to pass parameters just like the URL for active checks via the status API. This is why we pass warning/critical values in this way.
 
-For a full list of options for checks and senders check the config file reference section.
+For a [full list of options](../../config/options) for [checks](../../config/checks) and [senders](../../config/options#senders) check the config file reference section.

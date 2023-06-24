@@ -49,18 +49,16 @@ nav:
     - Passive Checks: checks/passive-checks.md
   - Status API Reference:
     - CPU: status-api/cpu.md
-    - Memory: status-api/memory.md
     - Disk: status-api/disk.md
-    - Services: status-api/services.md
-    - Processes: status-api/processes.md
-    - Plugins: status-api/plugins.md
-    - Network: status-api/network.md
-    - System: status-api/system.md
     - Load: status-api/load.md
+    - Memory: status-api/memory.md
+    - Network: status-api/network.md
+    - Plugins: status-api/plugins.md
+    - Processes: status-api/processes.md
+    - Services: status-api/services.md
+    - System: status-api/system.md
   - Config File Reference:
-    - Overview: config/overview.md
-    - Config Sections:
-      - Main: config/main.md
-      - Plugins: config/plugins.md
+    - Config Options: config/options.md
+    - Optional Sections:
       - Checks: config/checks.md
       - Manager: config/manager.md

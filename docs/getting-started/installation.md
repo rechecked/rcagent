@@ -58,7 +58,7 @@ sudo apt-get install rcagent
 
 #### RPM Based
 
-Download the latest .rpm from the [download page](https://rechecked.io/download/) for the operating system.
+Download the latest `.rpm` from the [latest release](https://github.com/rechecked/rcagent/releases) page for the operating system.
 
 ```
 sudo rpm -ivh rcagent-<version>.rpm
@@ -66,7 +66,7 @@ sudo rpm -ivh rcagent-<version>.rpm
 
 #### DEB Based
 
-Download the latest .deb version from the [download page](https://rechecked.io/download/) for the operating system.
+Download the latest `.deb` version from the [latest release](https://github.com/rechecked/rcagent/releases) page for the operating system.
 
 ```
 sudo dpkg -i rcagent-<version>.deb
@@ -83,7 +83,7 @@ systemctl start rcagent
 
 ## Windows
 
-Download the windows installer from the [download](https://rechecked.io/download/) page.
+Download the windows `.msi` installer from the [latest release](https://github.com/rechecked/rcagent/releases) page.
 
 The msi can be installed manually or you can install the package using the command line with the following command:
 
@@ -103,7 +103,7 @@ sc.exe start rcagent
 
 ## MacOS
 
-Download the dmg installer from the [download](https://rechecked.io/download/) page.
+Download the `.dmg` installer from the [latest release](https://github.com/rechecked/rcagent/releases) page.
 
 Mount the dmg file by double clicking it. You will need to run the following command with root permissions or via sudo:
 
