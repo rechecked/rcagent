@@ -43,3 +43,14 @@ Read more about how to use rcagent in the [documentation](https://docs.rechecked
 ### Config Options
 
 For a full list of config options in `config.yml`, check the [config options documentation](https://docs.rechecked.io/config/options/).
+
+### Building Documentation
+
+If you'd like the build your own set of docs (you'll need to host them in order for them to work properly) you can run the following:
+
+Intall mkdocs and run the mkdocs build:
+
+```
+pip install mkdocs-material
+mkdocs build
+```
