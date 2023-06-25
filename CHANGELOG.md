@@ -1,3 +1,7 @@
+06/25/2023 - 1.0.4
+==================
+- Fixed passive check plugins endpoint not able to run due to invalid check error
+
 05/01/2023 - 1.0.3
 ==================
 - Added cpuPercent and memPercent to processes output (#14)
