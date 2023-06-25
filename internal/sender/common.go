@@ -56,24 +56,32 @@ func Run() {
 			if err != nil {
 				fmt.Printf("Check Error: %s\n", err)
 			}
+
+			// If we are using a plugin, we need to convert the plugin result
+			// to a check result since it will need to be to send to NRDP
+			if p, ok := data.(status.PluginResults); ok {
+				data = status.CheckResult{
+					Output: p.Output,
+					Exitcode: p.ExitCode,
+				}
+			}
+
 			chk, ok := data.(status.CheckResult)
 			if ok {
 				go sendToSenders(chk, check)
-				if config.Settings.Debug {
-					fmt.Printf("%s\n", chk.String())
-				}
 			} else {
 				fmt.Printf("The check for '%s - %s' is invalid, check endpoints and options, disabling",
 					check.Hostname, check.Servicename)
 				checks[i].Disabled = true
 			}
+			
 		}
 	}
 }
 
 func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
 	if config.Settings.Debug {
-		fmt.Printf("Sending check: %s\n", chk.String())
+		fmt.Printf("Sending check: \n%s\n", chk.String())
 	}
 
 	// Get all senders

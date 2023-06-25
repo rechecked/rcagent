@@ -7,8 +7,10 @@ require (
 	github.com/iamacarpet/go-win64api v0.0.0-20221230174906-cb41e6e774e8
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/kardianos/service v1.2.2
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/shirou/gopsutil/v3 v3.22.11
 	github.com/tidwall/gjson v1.14.4
+	golang.org/x/sys v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -24,5 +26,4 @@ require (
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/sys v0.2.0 // indirect
 )

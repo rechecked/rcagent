@@ -3,13 +3,13 @@
         "FileVersion": {
             "Major": 1,
             "Minor": 0,
-            "Patch": 3,
+            "Patch": 4,
             "Build": 0
         },
         "ProductVersion": {
             "Major": 1,
             "Minor": 0,
-            "Patch": 3,
+            "Patch": 4,
             "Build": 0
         },
         "FileFlagsMask": "3f",
@@ -22,14 +22,14 @@
         "Comments": "",
         "CompanyName": "ReChecked",
         "FileDescription": "ReChecked system status and monitoring agent.",
-        "FileVersion": "v1.0.3.0",
+        "FileVersion": "v1.0.4.0",
         "InternalName": "rcagent.exe",
         "LegalCopyright": "(c) 2023 ReChecked",
         "LegalTrademarks": "",
         "OriginalFilename": "",
         "PrivateBuild": "",
         "ProductName": "ReChecked Agent",
-        "ProductVersion": "v1.0.3.0",
+        "ProductVersion": "v1.0.4.0",
         "SpecialBuild": ""
     },
     "VarFileInfo": {
