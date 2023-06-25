@@ -48,7 +48,7 @@ For a full list of config options in `config.yml`, check the [config options doc
 
 If you'd like the build your own set of docs (you'll need to host them in order for them to work properly) you can run the following:
 
-Intall mkdocs and run the mkdocs build:
+Install mkdocs-material and run the mkdocs build:
 
 ```
 pip install mkdocs-material
