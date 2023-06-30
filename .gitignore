@@ -1,5 +1,6 @@
 ./config.yml
 build/bin/*
+site
 build/rcagent.spec
 rcagent.pem
 rcagent.key
