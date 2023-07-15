@@ -16,6 +16,13 @@ import (
 	"github.com/rechecked/rcagent/internal/config"
 )
 
+type HostInfo struct {
+	Hostname string
+	MachineId string
+	OS string
+	Platform string
+}
+
 // Set up the manager connection
 func Run() {
 
@@ -35,18 +42,14 @@ func Run() {
 // need to get a certificate we do that now.
 func Register() {
 
-	hostname, _ := os.Hostname()
-	machineId, _ := machineid.ProtectedID("rcagent")
-	host, _ := host.Info()
-
+	i := getHostInfo()
 	data := map[string]string{
-		"hostname": hostname,
-		"machineId": machineId,
+		"hostname": i.Hostname,
+		"machineId": i.MachineId,
 		"address": getOutboundIP(),
 		"version": config.Version,
-		"os": host.OS,
-		"platform": host.Platform,
-
+		"os": i.OS,
+		"platform": i.Platform,
 	}
 
 	fmt.Println(data)
@@ -55,13 +58,23 @@ func Register() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }
 
 // Send some basic data to the manager to "check in" with it, indicating
 // that the agent is running, accessible, and provides feedback on current status
 func checkin() {
 
+	i := getHostInfo()
+	data := map[string]string{
+		"machineId": i.MachineId,
+	}
+
+	fmt.Println(data)
+
+	err := sendPost("agents/checkin", data)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Send a POST request
@@ -100,6 +113,22 @@ func sendPost(path string, data map[string]string) error {
 	defer resp.Body.Close()
 
 	return nil
+}
+
+func getHostInfo() HostInfo {
+
+	hostname, _ := os.Hostname()
+	machineId, _ := machineid.ProtectedID("rcagent")
+	host, _ := host.Info()
+
+	i := HostInfo{
+		Hostname: hostname,
+		MachineId: machineId,
+		OS: host.OS,
+		Platform: host.Platform,
+	}
+
+	return i
 }
 
 func getOutboundIP() string {
