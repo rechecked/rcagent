@@ -182,6 +182,13 @@ func ParseVersion(versionFile embed.FS) {
 	}
 }
 
+func GetConfigFilePath(name string) string {
+	if strings.Contains(ConfigDir, "/") && ConfigDir[len(ConfigDir)-1:] != "/" {
+		return ConfigDir + "/" + name
+	}
+	return ConfigDir + name
+}
+
 // Function to look for the config file in the normal locations
 // that it could be on standard systems
 func findConfig() (string, error) {

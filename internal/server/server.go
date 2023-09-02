@@ -36,8 +36,8 @@ func Run(l service.Logger) {
 
 	// Check if we are using adhoc certs, if we are, generate them
 	if config.Settings.TLS.Cert == "adhoc" && config.Settings.TLS.Key == "adhoc" {
-		config.Settings.TLS.Cert = config.ConfigDir + "/rcagent.pem"
-		config.Settings.TLS.Key = config.ConfigDir + "/rcagent.key"
+		config.Settings.TLS.Cert = config.GetConfigFilePath("rcagent.pem")
+		config.Settings.TLS.Key = config.GetConfigFilePath("rcagent.key")
 		if !config.FileExists(config.Settings.TLS.Cert) {
 			err := GenerateCert()
 			if err != nil {

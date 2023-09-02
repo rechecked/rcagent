@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -17,10 +18,10 @@ import (
 )
 
 type HostInfo struct {
-	Hostname string
+	Hostname  string
 	MachineId string
-	OS string
-	Platform string
+	OS        string
+	Platform  string
 }
 
 // Set up the manager connection
@@ -34,6 +35,7 @@ func Run() {
 	c := time.Tick(1 * time.Minute)
 	for range c {
 		checkin()
+		validateCert()
 	}
 
 }
@@ -44,17 +46,17 @@ func Register() {
 
 	i := getHostInfo()
 	data := map[string]string{
-		"hostname": i.Hostname,
+		"hostname":  i.Hostname,
 		"machineId": i.MachineId,
-		"address": getOutboundIP(),
-		"version": config.Version,
-		"os": i.OS,
-		"platform": i.Platform,
+		"address":   getOutboundIP(),
+		"version":   config.Version,
+		"os":        i.OS,
+		"platform":  i.Platform,
 	}
 
 	fmt.Println(data)
 
-	err := sendPost("agents/register", data)
+	_, err := sendPost("agents/register", data)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -71,14 +73,14 @@ func checkin() {
 
 	fmt.Println(data)
 
-	err := sendPost("agents/checkin", data)
+	_, err := sendPost("agents/checkin", data)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 // Send a POST request
-func sendPost(path string, data map[string]string) error {
+func sendPost(path string, data map[string]string) ([]byte, error) {
 
 	// Make sure we have a proper url, default to manage.rechecked.io if empty
 	url := config.Settings.Manager.Url
@@ -100,7 +102,7 @@ func sendPost(path string, data map[string]string) error {
 	postBody, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(postBody))
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -108,11 +110,16 @@ func sendPost(path string, data map[string]string) error {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	defer resp.Body.Close()
 
-	return nil
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, err := io.ReadAll(resp.Body)
+		return bodyBytes, err
+	}
+
+	return []byte{}, nil
 }
 
 func getHostInfo() HostInfo {
@@ -122,10 +129,10 @@ func getHostInfo() HostInfo {
 	host, _ := host.Info()
 
 	i := HostInfo{
-		Hostname: hostname,
+		Hostname:  hostname,
 		MachineId: machineId,
-		OS: host.OS,
-		Platform: host.Platform,
+		OS:        host.OS,
+		Platform:  host.Platform,
 	}
 
 	return i
