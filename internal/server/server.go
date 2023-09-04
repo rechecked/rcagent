@@ -5,14 +5,20 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
-	"github.com/kardianos/service"
-	"github.com/rechecked/rcagent/internal/config"
-	"github.com/rechecked/rcagent/internal/status"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"context"
+	"time"
 	"runtime"
 	"sort"
 	"strings"
+
+	"github.com/kardianos/service"
+	
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/status"
 )
 
 type Endpoint func(cv config.Values) interface{}
@@ -26,7 +32,7 @@ type serverError struct {
 var log service.Logger
 var endpoints = make(map[string]Endpoint)
 
-func Run(l service.Logger) {
+func Run(l service.Logger, restart chan struct{}) {
 	log = l
 
 	// Get details for server
@@ -39,29 +45,53 @@ func Run(l service.Logger) {
 		config.Settings.TLS.Cert = config.GetConfigFilePath("rcagent.pem")
 		config.Settings.TLS.Key = config.GetConfigFilePath("rcagent.key")
 		if !config.FileExists(config.Settings.TLS.Cert) {
-			err := GenerateCert()
+			err := GenerateCert(config.Settings.TLS.Cert, config.Settings.TLS.Key)
 			if err != nil {
 				log.Error(err)
 			}
 		}
 	}
 
-	// Create server with config so we can restart it later
-	srv := &http.Server{Addr: host}
-
 	setupEndpoints()
 
 	// Add handlers and run server with config
-	http.HandleFunc("/", handleMain)
-	http.HandleFunc("/status/", handleStatusAPI)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handleMain)
+	mux.HandleFunc("/status/", handleStatusAPI)
 
+	// Create server with config so we can restart it later
+	srv := &http.Server{
+		Addr: host,
+		Handler: mux,
+	}
+
+	go serve(srv, mux)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+		case <-quit:
+		case <-restart:
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			defer func(r chan struct{}){
+				r <- struct{}{}
+			}(restart)
+			if err := srv.Shutdown(ctx); err != nil {
+				log.Errorf("Shutdown error: %v", err)
+			}
+	}
+}
+
+func serve(srv *http.Server, mux *http.ServeMux) {
 	var err error
 	if config.Settings.TLS.Cert != "" && config.Settings.TLS.Key != "" {
 		err = srv.ListenAndServeTLS(config.Settings.TLS.Cert, config.Settings.TLS.Key)
 	} else {
 		err = srv.ListenAndServe()
 	}
-	if err != nil {
+	if err != nil && err != http.ErrServerClosed {
 		log.Error(err)
 	}
 }

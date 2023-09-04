@@ -30,19 +30,28 @@ func (p *program) Start(s service.Service) error {
 func (p *program) run() error {
 
 	// Register with the manager on startup, since we may need a certificate
-	manager.Register()
+	go manager.Register()
 
 	// Set up server configuration and run
-	go server.Run(logger)
+	c := make(chan struct{})
+	go runServer(c)
 
 	// If we have a sender (passive checks)
 	go sender.Run()
 
 	// Connect to the manager for sync
-	go manager.Run()
+	go manager.Run(c)
 
-	// Do work here
 	return nil
+}
+
+func runServer(c chan struct{}) {
+	restart := make(chan struct{})
+	go server.Run(logger, restart)
+	<- c
+	restart <- struct{}{}
+	<- restart
+	go runServer(c)
 }
 
 func (p *program) Stop(s service.Service) error {

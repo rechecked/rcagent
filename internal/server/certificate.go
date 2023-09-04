@@ -14,21 +14,31 @@ import (
 	"time"
 
 	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/manager"
 )
 
-func GenerateCert() error {
+func GenerateCert(certFn, keyFn string) error {
 
+	// Request a new certificate rather then generate a self signed one
+	if config.Settings.Manager.APIKey != "" {
+		err := manager.RequestCert(certFn, keyFn)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+		
 	cert, key, err := selfSignedCert()
 	if err != nil {
 		return err
 	}
 
-	err = writeToFile(config.GetConfigFilePath("rcagent.pem"), cert)
+	err = writeToFile(certFn, cert)
 	if err != nil {
 		return err
 	}
 
-	err = writeToFile(config.GetConfigFilePath("rcagent.key"), key)
+	err = writeToFile(keyFn, key)
 	if err != nil {
 		return err
 	}

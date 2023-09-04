@@ -25,7 +25,7 @@ type HostInfo struct {
 }
 
 // Set up the manager connection
-func Run() {
+func Run(restart chan<- struct{}) {
 
 	// Check if we should try to connect
 	if config.Settings.Manager.APIKey == "" {
@@ -35,7 +35,7 @@ func Run() {
 	c := time.Tick(1 * time.Minute)
 	for range c {
 		checkin()
-		validateCert()
+		validateCert(restart)
 	}
 
 }
@@ -52,9 +52,8 @@ func Register() {
 		"version":   config.Version,
 		"os":        i.OS,
 		"platform":  i.Platform,
+		"token": config.Settings.Token,
 	}
-
-	fmt.Println(data)
 
 	_, err := sendPost("agents/register", data)
 	if err != nil {
@@ -70,8 +69,6 @@ func checkin() {
 	data := map[string]string{
 		"machineId": i.MachineId,
 	}
-
-	fmt.Println(data)
 
 	_, err := sendPost("agents/checkin", data)
 	if err != nil {

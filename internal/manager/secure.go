@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -20,6 +19,40 @@ const (
 type Cert struct {
 	Certificate string `json:"cert"`
 	PrivateKey  string `json:"key"`
+}
+
+func RequestCert(certFn, keyFn string) error {
+
+	// Request a new cert
+	i := getHostInfo()
+	data := map[string]string{
+		"machineId": i.MachineId,
+		"hostname":  i.Hostname,
+		"address":   getOutboundIP(),
+	}
+
+	resp, err := sendPost("agents/certificate", data)
+	if err != nil {
+		return err
+	}
+
+	var cert Cert
+	err = json.Unmarshal(resp, &cert)
+	if err != nil {
+		return err
+	}
+
+	// Save certs to location
+	err = ioutil.WriteFile(certFn, []byte(cert.Certificate), 0600)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(keyFn, []byte(cert.PrivateKey), 0600)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func DecodePEMCert(p []byte) *x509.Certificate {
@@ -38,7 +71,7 @@ func DecodePEMCert(p []byte) *x509.Certificate {
 
 // We need to check cetificate validation every so often and request a new
 // certificate if ours is going to expire
-func validateCert() {
+func validateCert(restart chan<- struct{}) {
 
 	certFn := config.GetConfigFilePath("rcagent.pem")
 	keyFn := config.GetConfigFilePath("rcagent.key")
@@ -48,38 +81,13 @@ func validateCert() {
 		return
 	}
 
-	// Request a new cert
-	i := getHostInfo()
-	data := map[string]string{
-		"machineId": i.MachineId,
-		"hostname":  i.Hostname,
-		"address":   getOutboundIP(),
-	}
-
-	resp, err := sendPost("agents/certificate", data)
+	err := RequestCert(certFn, keyFn)
 	if err != nil {
-		fmt.Println(err)
+
 		return
 	}
 
-	var cert Cert
-	err = json.Unmarshal(resp, &cert)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Save certs to location
-	err = ioutil.WriteFile(certFn, []byte(cert.Certificate), 0600)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	err = ioutil.WriteFile(keyFn, []byte(cert.PrivateKey), 0600)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	restart <- struct{}{}
 }
 
 func isCertRequestNeeded(fn string) bool {

@@ -1,3 +1,7 @@
+??/??/2023 - 1.1.0
+==================
+- Added integration with ReChecked Manager
+
 05/01/2023 - 1.0.3
 ==================
 - Added cpuPercent and memPercent to processes output (#14)
