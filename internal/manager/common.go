@@ -24,6 +24,11 @@ type HostInfo struct {
 	Platform  string
 }
 
+type CheckInStatus struct {
+	NeedsConfigUpdate bool `json:"needsConfigUpdate"`
+	NeedsSecretsUpdate bool `json:"needsSecretsUpdate"`
+}
+
 // Set up the manager connection
 func Run(restart chan<- struct{}) {
 
@@ -70,10 +75,36 @@ func checkin() {
 		"machineId": i.MachineId,
 	}
 
-	_, err := sendPost("agents/checkin", data)
+	b, err := sendPost("agents/checkin", data)
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	c := CheckInStatus{}
+	err = json.Unmarshal(b, &c)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Get secrets if they need updating
+	if c.NeedsSecretsUpdate {
+		updateSecrets()
+	}
+
+	if c.NeedsConfigUpdate {
+		updateConfigs()
+	}
+
+}
+
+func updateSecrets() {
+
+	
+
+}
+
+func updateConfigs() {
+
 }
 
 // Send a POST request
