@@ -8,7 +8,7 @@ on:
     branches: [ "develop", "manager-integration" ]
 
 env:
-  RELEASE: $GITHUB_RUN_ID
+  RELEASE: ${{ github.run_id }}
 
 jobs:
 
