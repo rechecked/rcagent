@@ -3,9 +3,9 @@ name: Go Test/Build Dev
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "manager-integration" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "develop", "manager-integration" ]
 
 env:
   VERSION: dev
@@ -252,3 +252,19 @@ jobs:
         with:
             name: windows-build
             path: build/rcagent-install.msi
+
+  deployment:
+    runs-on: ubuntu-latest
+    environment: 
+      name: development
+      url: https://dev-downloads.nyc3.digitaloceanspaces.com
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@master
+      - uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_SPACES_ACCESS_KEY}}
+          secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          space_name: ${{ vars.DO_SPACE_NAME }}
+          space_region: ${{ vars.DO_SPACE_REGION }}
+          source: build
