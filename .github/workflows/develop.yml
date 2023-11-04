@@ -254,11 +254,23 @@ jobs:
             path: build/rcagent-install.msi
 
   deployment:
+    needs:
+      - build_ubuntu22
+      - build_ubuntu20
+      - build_ubuntu18
+      - build_debian11
+      - build_debian10
+      - build_centos_el9
+      - build_centos_el8
+      - build_macos
+      - build_win
     runs-on: ubuntu-latest
     environment: 
       name: development
       url: https://dev-downloads.nyc3.digitaloceanspaces.com
     steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
       - name: Checkout Repository
         uses: actions/checkout@master
       - uses: BetaHuhn/do-spaces-action@v2
@@ -267,4 +279,4 @@ jobs:
           secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
           space_name: ${{ vars.DO_SPACE_NAME }}
           space_region: ${{ vars.DO_SPACE_REGION }}
-          source: build
+          source: .
