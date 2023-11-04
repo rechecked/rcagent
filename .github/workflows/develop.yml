@@ -299,12 +299,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
+
+      - name: Move artifacts to upload
+        run: mkdir upload && mv artifacts/*/* upload
+
       - name: Checkout Repository
-        uses: actions/checkout@master
-      - uses: BetaHuhn/do-spaces-action@v2
+        uses: BetaHuhn/do-spaces-action@v2
         with:
           access_key: ${{ secrets.DO_SPACES_ACCESS_KEY}}
           secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
           space_name: ${{ vars.DO_SPACE_NAME }}
           space_region: ${{ vars.DO_SPACE_REGION }}
-          source: artifacts
+          source: upload
