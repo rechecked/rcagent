@@ -20,14 +20,14 @@ import (
 func GenerateCert(certFn, keyFn string) error {
 
 	// Request a new certificate rather then generate a self signed one
-	if config.Settings.Manager.APIKey != "" {
+	if config.UsingManager() {
 		err := manager.RequestCert(certFn, keyFn)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
-		
+
 	cert, key, err := selfSignedCert()
 	if err != nil {
 		return err

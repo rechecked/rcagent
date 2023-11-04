@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -29,11 +29,17 @@ type CheckInStatus struct {
 	NeedsSecretsUpdate bool `json:"needsSecretsUpdate"`
 }
 
+type ConfigsData struct {
+	Configs map[string]string
+	Senders string
+	Plugins map[string]string
+}
+
 // Set up the manager connection
 func Run(restart chan<- struct{}) {
 
 	// Check if we should try to connect
-	if config.Settings.Manager.APIKey == "" {
+	if !config.UsingManager() {
 		return
 	}
 
@@ -45,9 +51,40 @@ func Run(restart chan<- struct{}) {
 
 }
 
+// If we are connected to the manager, we need to do config parsing once before
+// we start this to ensure we have the most up to date configs - the manager sync will
+// automatically update configs while it's running
+func Init() {
+	if config.UsingManager() {
+		if Sync(true, true) {
+			config.ParseConfigDir()
+		}
+	}
+}
+
+func Sync(s, c bool) bool {
+	nu := false
+	if s == true {
+		if updateSecrets() {
+			nu = true
+		}
+	}
+	if c == true {
+		if updateConfigs() {
+			nu = true
+		}
+	}
+	return nu
+}
+
 // Do inital registration when the agent starts up... send basic data and if we
 // need to get a certificate we do that now.
 func Register() {
+
+	if config.DebugMode {
+		url, _ := getManagerUrl("", nil)
+		config.LogDebugf("Registering with RCM (%s)", url)
+	}
 
 	i := getHostInfo()
 	data := map[string]string{
@@ -62,79 +99,110 @@ func Register() {
 
 	_, err := sendPost("agents/register", data)
 	if err != nil {
-		fmt.Println(err)
+		config.Log.Error(err)
 	}
+}
+
+func GetMachineId() string {
+	return getHostInfo().MachineId;
 }
 
 // Send some basic data to the manager to "check in" with it, indicating
 // that the agent is running, accessible, and provides feedback on current status
 func checkin() {
 
-	i := getHostInfo()
 	data := map[string]string{
-		"machineId": i.MachineId,
+		"machineId": getHostInfo().MachineId,
 	}
 
 	b, err := sendPost("agents/checkin", data)
 	if err != nil {
-		fmt.Println(err)
+		config.Log.Error(err)
+		return
 	}
 
 	c := CheckInStatus{}
 	err = json.Unmarshal(b, &c)
 	if err != nil {
-		fmt.Println(err)
+		config.Log.Error(err)
+		return
 	}
 
-	// Get secrets if they need updating
-	if c.NeedsSecretsUpdate {
-		updateSecrets()
+	// Sync certain things if they need to be synced
+	if Sync(c.NeedsSecretsUpdate, c.NeedsConfigUpdate) {
+		config.ParseConfigDir()
 	}
-
-	if c.NeedsConfigUpdate {
-		updateConfigs()
-	}
-
-}
-
-func updateSecrets() {
-
-	
-
-}
-
-func updateConfigs() {
-
 }
 
 // Send a POST request
 func sendPost(path string, data map[string]string) ([]byte, error) {
 
-	// Make sure we have a proper url, default to manage.rechecked.io if empty
-	url := config.Settings.Manager.Url
-	if url == "" {
-		url = "https://manage.rechecked.io"
+	cfgUrl, err := getManagerUrl(path, nil)
+	if err != nil {
+		return []byte{}, err
 	}
 
-	if url[len(url)-1:] != "/" {
-		url += "/"
+	postBody, _ := json.Marshal(data)
+	req, err := http.NewRequest("POST", cfgUrl, bytes.NewBuffer(postBody))
+	if err != nil {
+		return []byte{}, err
 	}
-	url += path
+
+	return getRequest(req)
+}
+
+// Send a GET request
+func sendGet(path string, params url.Values) ([]byte, error) {
+
+	cfgUrl, err := getManagerUrl(path, params)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	req, err := http.NewRequest("GET", cfgUrl, nil)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return getRequest(req)
+}
+
+func downloadFile(name string, url string) error {
+
+	// Create or truncate file
+	file, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	client := http.Client{
+        CheckRedirect: func(r *http.Request, via []*http.Request) error {
+            r.URL.Opaque = r.URL.Path
+            return nil
+        },
+    }
+
+    resp, err := client.Get(url)
+    if err != nil {
+    	return err
+    }
+    defer resp.Body.Close()
+
+    _, err = io.Copy(file, resp.Body)
+    return err
+}
+
+func getRequest(req *http.Request) ([]byte, error) {
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("X-API-Key", config.Settings.Manager.APIKey)
 
 	// Set up an HTTP client, ignore invalid certs if we have the config option set
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Settings.Manager.IgnoreCert},
 	}
 	client := &http.Client{Transport: tr}
-
-	postBody, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(postBody))
-	if err != nil {
-		return []byte{}, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("X-API-Key", config.Settings.Manager.APIKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -148,6 +216,29 @@ func sendPost(path string, data map[string]string) ([]byte, error) {
 	}
 
 	return []byte{}, nil
+}
+
+func getManagerUrl(path string, params url.Values) (string, error) {
+
+	// Make sure we have a proper url, default to manage.rechecked.io if empty
+	cfgUrl := config.Settings.Manager.Url
+	if cfgUrl == "" {
+		cfgUrl = "https://manage.rechecked.io"
+	}
+
+	baseUrl, err := url.Parse(cfgUrl)
+	if err != nil {
+		return "", err
+	}
+
+	baseUrl.Path += path
+
+	// Add params to url if we need to
+	if params != nil && len(params) > 0 {
+		baseUrl.RawQuery = params.Encode()
+	}
+
+	return baseUrl.String(), nil
 }
 
 func getHostInfo() HostInfo {
@@ -169,7 +260,7 @@ func getHostInfo() HostInfo {
 func getOutboundIP() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		fmt.Println(err)
+		config.Log.Error(err)
 		return ""
 	}
 	defer conn.Close()

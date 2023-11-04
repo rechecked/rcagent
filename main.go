@@ -5,6 +5,7 @@ package main
 import (
 	"embed"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -29,7 +30,7 @@ func (p *program) Start(s service.Service) error {
 
 func (p *program) run() error {
 
-	// Register with the manager on startup, since we may need a certificate
+	// Register with the manager on startup
 	go manager.Register()
 
 	// Set up server configuration and run
@@ -47,7 +48,7 @@ func (p *program) run() error {
 
 func runServer(c chan struct{}) {
 	restart := make(chan struct{})
-	go server.Run(logger, restart)
+	go server.Run(restart)
 	<- c
 	restart <- struct{}{}
 	<- restart
@@ -58,8 +59,6 @@ func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
 	return nil
 }
-
-var logger service.Logger
 
 //go:embed build/package/config.yml
 var defaultConfigFile embed.FS
@@ -72,13 +71,21 @@ func main() {
 	// All actions the service can perform
 	action := flag.String("a", "run", "Service action to run: 'install', 'uninstall', or 'run'. Default is 'run'.")
 	configFile := flag.String("f", "", "Config file location")
+	debugMode := flag.Bool("D", false, "Force debug mode")
 	version := flag.Bool("v", false, "Show version of rcagent")
+	machineId := flag.Bool("m", false, "Show the machineID for this system")
 	flag.Parse()
 
 	// Parse/set version then show if someone does -v
 	config.ParseVersion(defaultVersion)
 	if *version {
-		log.Printf("ReChecked Agent, version: %s\n", config.Version)
+		fmt.Printf("ReChecked Agent, version: %s\n", config.Version)
+		os.Exit(0)
+	}
+
+	// Display the machine id (useful for debugging/dev/testing)
+	if *machineId {
+		fmt.Printf("Machine ID: %s\n", manager.GetMachineId())
 		os.Exit(0)
 	}
 
@@ -90,6 +97,7 @@ func main() {
 			"After=network-online.target syslog.target",
 		}
 	}
+
 	// Change name on macos to conform to macos
 	if runtime.GOOS == "darwin" {
 		name = "io.rechecked.rcagent"
@@ -102,14 +110,6 @@ func main() {
 		Dependencies: deps,
 	}
 
-	// Initialize config settings (no config.yml on install)
-	if *action == "run" {
-		err := config.ParseFile(*configFile, defaultConfigFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
 	// Initialize service
 	prg := &program{}
 	s, err := service.New(prg, svcConfig)
@@ -118,9 +118,18 @@ func main() {
 	}
 
 	// Initialize service logger
-	logger, err = s.Logger(nil)
+	config.Log, err = s.Logger(nil)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Initialize config settings (no config.yml on install)
+	if *action == "run" {
+		config.DebugMode = *debugMode // Force debug mode on if we set it with -D
+		err := config.InitConfig(*configFile, defaultConfigFile)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Run actions for the service (run, install, uninstall)
@@ -135,7 +144,7 @@ func main() {
 
 	// Exit with error if we hit one
 	if err != nil {
-		logger.Error(err)
+		config.Log.Error(err)
 		os.Exit(1)
 	}
 

@@ -1,15 +1,18 @@
 package config
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
-	"strings"
+	"sync"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type settings struct {
@@ -69,15 +72,24 @@ type Values struct {
 	units    string
 }
 
+type Data struct {
+	Checks  []CheckCfg
+	Senders []SenderCfg
+	Secrets map[string]string
+	sync.RWMutex
+}
+
 var Version string
+var DebugMode bool
+var ConfigFile string
+var ConfigDefaultFile embed.FS
 var ConfigDir string
 var PluginDir string
 var Settings = new(settings)
 var AllowedUnits = []string{"B", "kB", "MB", "GB", "TB", "PB", "KiB", "MiB", "GiB", "TiB", "PiB"}
 
-func (s *settings) GetServerHost() string {
-	return fmt.Sprintf("%s:%s", s.Address, strconv.Itoa(s.Port))
-}
+// Actual config data (checks, senders, secrets) after parse
+var CfgData Data
 
 func (v *Values) Units() string {
 	units := Settings.Units
@@ -89,6 +101,26 @@ func (v *Values) Units() string {
 	}
 	return units
 }
+
+func (c *CheckCfg) isEmpty() bool {
+	return c.Hostname == ""
+}
+
+func (c *CheckCfg) apply(nc CheckCfg) {
+
+}
+
+// ================================
+// Actual config settings
+// ================================
+
+func (s *settings) GetServerHost() string {
+	return fmt.Sprintf("%s:%s", s.Address, strconv.Itoa(s.Port))
+}
+
+// ================================
+// Other functions
+// ================================
 
 func ParseValues(r *http.Request) Values {
 
@@ -120,7 +152,200 @@ func ParseValues(r *http.Request) Values {
 	return v
 }
 
-func ParseFile(file string, defaultFile embed.FS) error {
+func InitConfig(file string, defaultFile embed.FS) error {
+
+	// If we don't pass a config, look for a config
+	if file == "" {
+		cfgFile, err := findConfig()
+		if err != nil {
+			return err
+		}
+		ConfigFile = cfgFile
+	} else {
+		ConfigFile = file
+	}
+
+	ConfigDefaultFile = defaultFile
+	err := ParseConfig()
+
+	return err
+}
+
+func ParseConfig() error {
+
+	// Parse main config file
+	err := ParseFile(ConfigDefaultFile)
+	if err != nil {
+		return err
+	}
+
+	// Parse checks/sender configs in directory
+	ParseConfigDir()
+
+	LogDebug("Configuration:")
+	LogDebugf(" - Checks: %d", len(CfgData.Checks))
+	LogDebugf(" - Senders: %d", len(CfgData.Senders))
+
+	return nil
+}
+
+// Run through all YAML config files in the config directory if it exists
+// and import any configurations for checks and senders. Does not return
+// actual error but logs issues.
+func ParseConfigDir() {
+
+	hostname, _ := os.Hostname()
+
+	p := GetConfigDirFilePath("")
+	i, err := os.Stat(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// We don't care if the file doesn't exist, only log in debug mode
+			LogDebugf("Config dir does not exist: %s", p)
+		} else {
+			LogDebug(err)
+		}
+		return
+	}
+
+	if !i.IsDir() {
+		Log.Errorf("Config dir should be a directory: %s", p)
+		return
+	}
+
+	// Look for both .yml and .yaml
+	exts := []string{"yml", "yaml"}
+	files := []string{}
+	for _, ext := range exts {
+		fs, err := filepath.Glob(filepath.Join(p, "**/*."+ext))
+		if err != nil {
+			Log.Error(err)
+			return
+		}
+		files = append(files, fs...)
+	}
+
+	LogDebugf("CONFIG: Config dir files found: %v", files)
+
+	// Reset the checks and senders to the orginal config file values
+	CfgData.Lock()
+	defer CfgData.Unlock()
+	CfgData.Checks = Settings.PassiveChecks
+	CfgData.Senders = Settings.Senders
+
+	// Load the secrets file
+	CfgData.Secrets, err = ParseSecretsFile()
+	if err != nil {
+		Log.Error(err)
+	}
+
+	// Load up the senders and checks from each file
+	for _, file := range files {
+
+		yamlData, err := os.ReadFile(file)
+		if err != nil {
+			Log.Error(err)
+			continue
+		}
+
+		// Replace host in file before parsing
+		bytes.ReplaceAll(yamlData, []byte("$HOST"), []byte(hostname))
+
+		// Replace secrets in file before parsing
+		if len(CfgData.Secrets) > 0 {
+			for k, v := range CfgData.Secrets {
+				bytes.ReplaceAll(yamlData, []byte(k), []byte(v))
+			}
+		}
+
+		var tmp settings
+		err = yaml.Unmarshal(yamlData, &tmp)
+		if err != nil {
+			Log.Error(err)
+			continue
+		}
+
+		// Senders specifically are not additive, only one of the same URL can exist
+		if len(tmp.Senders) > 0 {
+			if len(CfgData.Senders) > 0 {
+				for i, oSender := range CfgData.Senders {
+					for _, nSender := range tmp.Senders {
+						if oSender.Url == nSender.Url {
+							CfgData.Senders[i] = nSender
+						}
+					}
+				}
+			} else {
+				CfgData.Senders = tmp.Senders
+			}
+		}
+
+		// Checks are additive, we need to add a new check to existing checks
+		if len(tmp.PassiveChecks) > 0 {
+			if len(CfgData.Checks) > 0 {
+
+				// Check if a new check with same host/service name exists... if it does we need to
+				// do an additive addition to the current passive checks
+				for _, nCheck := range tmp.PassiveChecks {
+
+					if nCheck.isEmpty() {
+						continue
+					}
+
+					i := findPassiveCheck(nCheck)
+					if i != -1 {
+						fmt.Printf("found check: %v\n", CfgData.Checks[i])
+						CfgData.Checks[i].apply(nCheck)
+					} else {
+						CfgData.Checks = append(CfgData.Checks, nCheck)
+					}
+				}
+
+			} else {
+				CfgData.Checks = tmp.PassiveChecks
+			}
+		}
+
+	}
+
+	// Make sure any checks are set to their options for check=1
+	for i := range CfgData.Checks {
+		CfgData.Checks[i].Options.Check = true
+	}
+
+}
+
+func findPassiveCheck(check CheckCfg) int {
+	for i, c := range CfgData.Checks {
+		if check.Hostname == c.Hostname && check.Servicename == c.Servicename {
+			return i
+		}
+	}
+	return -1
+}
+
+func ParseSecretsFile() (map[string]string, error) {
+	secrets := make(map[string]string)
+
+	f := GetConfigDirFilePath("manager/secrets.json")
+	if !FileExists(f) {
+		return secrets, nil
+	}
+
+	data, err := os.ReadFile(f)
+	if err != nil {
+		return secrets, err
+	}
+
+	err = json.Unmarshal(data, &secrets)
+	if err != nil {
+		return secrets, err
+	}
+
+	return secrets, nil
+}
+
+func ParseFile(defaultFile embed.FS) error {
 
 	var yamlData []byte
 	var err error
@@ -138,15 +363,7 @@ func ParseFile(file string, defaultFile embed.FS) error {
 		return err
 	}
 
-	// If we don't pass a config, look for a config
-	if file == "" {
-		file, err = findConfig()
-		if err != nil {
-			return err
-		}
-	}
-
-	yamlData, err = ioutil.ReadFile(file)
+	yamlData, err = os.ReadFile(ConfigFile)
 	if err != nil {
 		return err
 	}
@@ -161,12 +378,11 @@ func ParseFile(file string, defaultFile embed.FS) error {
 		Settings.PluginDir = getPluginDir()
 	}
 
-	// Make sure any checks are set to their options for check=1
-	hostname, _ := os.Hostname()
-	for i, c := range Settings.PassiveChecks {
-		Settings.PassiveChecks[i].Options.Check = true
-		if strings.Contains(c.Hostname, "$HOST") {
-			Settings.PassiveChecks[i].Hostname = strings.Replace(c.Hostname, "$HOST", hostname, -1)
+	// Check if we should set debug mode on, it may already be forced
+	// on during initialization in main.go
+	if !DebugMode {
+		if Settings.Debug {
+			DebugMode = true
 		}
 	}
 
@@ -183,10 +399,15 @@ func ParseVersion(versionFile embed.FS) {
 }
 
 func GetConfigFilePath(name string) string {
-	if strings.Contains(ConfigDir, "/") && ConfigDir[len(ConfigDir)-1:] != "/" {
-		return ConfigDir + "/" + name
-	}
-	return ConfigDir + name
+	return filepath.Join(ConfigDir, name)
+}
+
+func GetConfigDirFilePath(path string) string {
+	return GetConfigFilePath(filepath.Join("conf.d", path))
+}
+
+func GetPluginDirFilePath(name string) string {
+	return filepath.Join(PluginDir, name)
 }
 
 // Function to look for the config file in the normal locations
@@ -194,7 +415,7 @@ func GetConfigFilePath(name string) string {
 func findConfig() (string, error) {
 	var err error
 	if ConfigDir != "" {
-		return ConfigDir + "/config.yml", nil
+		return GetConfigFilePath("config.yml"), nil
 	}
 	paths := []string{
 		"config.yml",

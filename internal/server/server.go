@@ -1,22 +1,19 @@
 package server
 
 import (
-	//"fmt"
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
-	"context"
-	"time"
 	"runtime"
 	"sort"
 	"strings"
+	"syscall"
+	"time"
 
-	"github.com/kardianos/service"
-	
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/rechecked/rcagent/internal/status"
 )
@@ -29,16 +26,14 @@ type serverError struct {
 	Endpoints []string `json:"endpoints,omitempty"`
 }
 
-var log service.Logger
 var endpoints = make(map[string]Endpoint)
 
-func Run(l service.Logger, restart chan struct{}) {
-	log = l
+func Run(restart chan struct{}) {
 
 	// Get details for server
 	hostname, _ := os.Hostname()
 	host := config.Settings.GetServerHost()
-	log.Infof("Starting server: %s (%s)", hostname, host)
+	config.Log.Infof("Starting server: %s (%s)", hostname, host)
 
 	// Check if we are using adhoc certs, if we are, generate them
 	if config.Settings.TLS.Cert == "adhoc" && config.Settings.TLS.Key == "adhoc" {
@@ -47,7 +42,7 @@ func Run(l service.Logger, restart chan struct{}) {
 		if !config.FileExists(config.Settings.TLS.Cert) {
 			err := GenerateCert(config.Settings.TLS.Cert, config.Settings.TLS.Key)
 			if err != nil {
-				log.Error(err)
+				config.Log.Error(err)
 			}
 		}
 	}
@@ -61,7 +56,7 @@ func Run(l service.Logger, restart chan struct{}) {
 
 	// Create server with config so we can restart it later
 	srv := &http.Server{
-		Addr: host,
+		Addr:    host,
 		Handler: mux,
 	}
 
@@ -71,16 +66,16 @@ func Run(l service.Logger, restart chan struct{}) {
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
-		case <-quit:
-		case <-restart:
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			defer func(r chan struct{}){
-				r <- struct{}{}
-			}(restart)
-			if err := srv.Shutdown(ctx); err != nil {
-				log.Errorf("Shutdown error: %v", err)
-			}
+	case <-quit:
+	case <-restart:
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		defer func(r chan struct{}) {
+			r <- struct{}{}
+		}(restart)
+		if err := srv.Shutdown(ctx); err != nil {
+			config.Log.Errorf("Shutdown error: %v", err)
+		}
 	}
 }
 
@@ -92,7 +87,7 @@ func serve(srv *http.Server, mux *http.ServeMux) {
 		err = srv.ListenAndServe()
 	}
 	if err != nil && err != http.ErrServerClosed {
-		log.Error(err)
+		config.Log.Error(err)
 	}
 }
 
@@ -166,7 +161,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if err = r.ParseForm(); err != nil {
-		log.Error(err)
+		config.Log.Error(err)
 	}
 
 	// Parse config values and build thresholds
@@ -209,7 +204,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	jsonData, err = ConvertToJson(data, values.Pretty)
 
 	if err != nil {
-		log.Errorf("Error getting data. Err: %s", err)
+		config.Log.Errorf("Error getting data. Err: %s", err)
 	}
 	w.Write(jsonData)
 }
@@ -225,7 +220,7 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
 		}
 		jsonData, err := json.Marshal(error)
 		if err != nil {
-			log.Error(err)
+			config.Log.Error(err)
 		}
 		w.Write(jsonData)
 	}

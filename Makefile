@@ -1,6 +1,7 @@
 GOCMD=go
 GOTEST=$(GOCMD) test
 VERSION?=$(shell cat VERSION)
+RELEASE?=1
 BINARY_NAME=rcagent
 DIR_NAME=rcagent-$(VERSION)
 LOCAL_DIR=/usr/local/rcagent
@@ -22,6 +23,7 @@ build-rpm: build-tar
 	mv -f build/rcagent-$(VERSION).tar.gz $(HOME)/rpmbuild/SOURCES/
 	cp build/package/rcagent.spec build/rcagent.spec
 	sed -i "s/Version:.*/Version: $(VERSION)/g" build/rcagent.spec
+	sed -i "s/Release:.*/Release: $(RELEASE)%{?dist}/g" build/rcagent.spec
 	rpmbuild -ba build/rcagent.spec
 	find $(HOME)/rpmbuild/RPMS -name "rcagent-*.rpm" -exec cp {} build \;
 
@@ -42,7 +44,10 @@ install:
 	cp -n build/package/config.yml $(LOCAL_DIR)/config.yml
 
 test:
-	$(GOTEST) -v ./...
+	$(GOTEST) -v ./... -coverprofile cover.out
+
+coverage:
+	$(GOCMD) tool cover -func cover.out
 
 clean:
 	rm -rf build/bin
@@ -66,4 +71,5 @@ help:
 	@echo '  build-tar		bundle the source into a tar.gz file'
 	@echo ''
 	@echo '  test 			run the go tests'
+	@echo '  coverage       show the coverage from running make test'
 	@echo '  clean			clean up the directoies/binary files'

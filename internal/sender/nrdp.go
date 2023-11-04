@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/tidwall/gjson"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/tidwall/gjson"
 )
 
 type NRDPServer struct {
@@ -89,7 +90,7 @@ func (n *NRDPServer) TestConn() error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
@@ -100,11 +101,11 @@ func (n *NRDPServer) TestConn() error {
 		return nil
 	}
 
-	return errors.New("Could not validate message")
+	return errors.New("could not validate message")
 }
 
 func (n *NRDPServer) String() string {
-	return fmt.Sprintf("%s", n.Url)
+	return n.Url
 }
 
 func (n *NRDPResponse) String() string {
@@ -119,7 +120,7 @@ func sendToNRDP(url string, data url.Values) (NRDPResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return NRDPResponse{}, err
 	}

@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -43,11 +42,11 @@ func RequestCert(certFn, keyFn string) error {
 	}
 
 	// Save certs to location
-	err = ioutil.WriteFile(certFn, []byte(cert.Certificate), 0600)
+	err = os.WriteFile(certFn, []byte(cert.Certificate), 0600)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(keyFn, []byte(cert.PrivateKey), 0600)
+	err = os.WriteFile(keyFn, []byte(cert.PrivateKey), 0600)
 	if err != nil {
 		return err
 	}
@@ -96,7 +95,7 @@ func isCertRequestNeeded(fn string) bool {
 		return true
 	}
 
-	bytes, err := ioutil.ReadFile(fn)
+	bytes, err := os.ReadFile(fn)
 	if err != nil {
 		return false
 	}

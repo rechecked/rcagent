@@ -22,10 +22,12 @@ type CheckableExtra interface {
 	LongOutput() string
 }
 
+/*
 type apiError struct {
 	Message string `json:"message"`
 	Status  string `json:"status"`
 }
+*/
 
 type CheckResult struct {
 	Exitcode   int    `json:"exitcode"`
@@ -148,9 +150,11 @@ func isInRange(r string, value float64) bool {
 	return false
 }
 
+/*
 func errorCheckResult(err error) CheckResult {
 	return CheckResult{
 		Exitcode: 3,
 		Output:   fmt.Sprintf("UNKOWN - %s", err),
 	}
 }
+*/

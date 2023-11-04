@@ -1,0 +1,254 @@
+
+name: Go Test/Build Dev
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+env:
+  VERSION: dev
+  RELEASE: $GITHUB_RUN_ID
+
+jobs:
+
+  build_ubuntu22:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu22-build
+            path: build/rcagent_*.deb
+
+  build_ubuntu20:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu20-build
+            path: build/rcagent_*.deb
+
+  build_ubuntu18:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:18.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu18-build
+            path: build/rcagent_*.deb
+
+  build_debian11:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:11
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian11-build
+            path: build/rcagent_*.deb
+
+  build_debian10:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian10-build
+            path: build/rcagent_*.deb
+
+  build_centos_el9:
+    runs-on: ubuntu-latest
+    container:
+      image: tgagor/centos:stream9
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Prereqs
+        run: yum install golang rpm-build systemd-rpm-macros make -y
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-rpm
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: centos-build-el9
+            path: build/rcagent-*.rpm
+
+  build_centos_el8:
+    runs-on: ubuntu-latest
+    container:
+      image: tgagor/centos:stream8
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Prereqs
+        run: yum install golang rpm-build systemd-rpm-macros make -y
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-rpm
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: centos-build-el8
+            path: build/rcagent-*.rpm
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: |
+          LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
+          -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagent" \
+          make build && make build-dmg
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: macos-build
+            path: build/rcagent-*.dmg
+
+  build_win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build & Test
+        run: go build -v && go test -v ./...
+
+      - name: Set path for candle and light
+        run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Build Dist
+        run: build/build_windows.bat
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: windows-build
+            path: build/rcagent-install.msi

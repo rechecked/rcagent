@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/go-cmd/cmd"
 	"github.com/rechecked/rcagent/internal/config"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -67,9 +66,7 @@ func (p *Plugin) CreateCmd() error {
 		p.cmd = append(p.cmd, p.args...)
 	}
 
-	if config.Settings.Debug {
-		fmt.Printf("Command: %s\n", p.cmd)
-	}
+	config.LogDebugf("Command: %s\n", p.cmd)
 
 	return nil
 }
@@ -161,7 +158,7 @@ func getPlugins() ([]string, error) {
 
 	plugins := []string{}
 
-	files, err := ioutil.ReadDir(config.Settings.PluginDir)
+	files, err := os.ReadDir(config.Settings.PluginDir)
 	if err != nil {
 		return plugins, err
 	}

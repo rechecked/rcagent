@@ -2,11 +2,12 @@ package status
 
 import (
 	"fmt"
-	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 var ifmux = &sync.Mutex{}
@@ -143,11 +144,17 @@ func HandleNetworks(cv config.Values) interface{} {
 
 func getNetworkIfs() ([]Interface, error) {
 	var ifList []Interface
+
 	ifs, err := net.Interfaces()
+	if err != nil {
+		return ifList, err
+	}
+
 	ifsCounters, err := net.IOCounters(true)
 	if err != nil {
 		return ifList, err
 	}
+
 	for _, i := range ifs {
 		// Append the counter data onto each of the interfaces
 		for _, x := range ifsCounters {
