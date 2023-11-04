@@ -303,7 +303,7 @@ jobs:
       - name: Move artifacts to upload
         run: mkdir upload && mv artifacts/*/* upload
 
-      - name: Checkout Repository
+      - name: Upload to DO spaces
         uses: BetaHuhn/do-spaces-action@v2
         with:
           access_key: ${{ secrets.DO_SPACES_ACCESS_KEY}}
@@ -311,3 +311,4 @@ jobs:
           space_name: ${{ vars.DO_SPACE_NAME }}
           space_region: ${{ vars.DO_SPACE_REGION }}
           source: upload
+          out_dir: dev
