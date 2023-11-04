@@ -4,6 +4,7 @@ build/bin/*
 site
 etc
 build/rcagent.spec
+build/package/config.yml
 rcagent.pem
 rcagent.key
 rcagent.exe
