@@ -8,7 +8,6 @@ on:
     branches: [ "develop", "manager-integration" ]
 
 env:
-  VERSION: dev
   RELEASE: $GITHUB_RUN_ID
 
 jobs:
@@ -36,11 +35,14 @@ jobs:
       - name: Build Dist
         run: make build-deb
 
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu22.amd64.deb
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: ubuntu22-build
-            path: build/rcagent_*.deb
+            path: build/rcagent-dev.ubuntu22.amd64.deb
 
   build_ubuntu20:
     runs-on: ubuntu-latest
@@ -65,11 +67,14 @@ jobs:
       - name: Build Dist
         run: make build-deb
 
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu20.amd64.deb
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: ubuntu20-build
-            path: build/rcagent_*.deb
+            path: build/rcagent-dev.ubuntu20.amd64.deb
 
   build_ubuntu18:
     runs-on: ubuntu-latest
@@ -94,11 +99,14 @@ jobs:
       - name: Build Dist
         run: make build-deb
 
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu18.amd64.deb
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: ubuntu18-build
-            path: build/rcagent_*.deb
+            path: build/rcagent-dev.ubuntu18.amd64.deb
 
   build_debian11:
     runs-on: ubuntu-latest
@@ -123,11 +131,14 @@ jobs:
       - name: Build Dist
         run: make build-deb
 
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb11.amd64.deb
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: debian11-build
-            path: build/rcagent_*.deb
+            path: build/rcagent-dev.deb11.amd64.deb
 
   build_debian10:
     runs-on: ubuntu-latest
@@ -152,11 +163,14 @@ jobs:
       - name: Build Dist
         run: make build-deb
 
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb10.amd64.deb
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: debian10-build
-            path: build/rcagent_*.deb
+            path: build/rcagent-dev.deb10.amd64.deb
 
   build_centos_el9:
     runs-on: ubuntu-latest
@@ -174,11 +188,14 @@ jobs:
       - name: Build Dist
         run: make build-rpm
 
+      - name: Rename File
+        run: mv build/rcagent-*.rpm build/rcagent-dev.el9.x86_64.rpm
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: centos-build-el9
-            path: build/rcagent-*.rpm
+            path: build/rcagent-dev.el9.x86_64.rpm
 
   build_centos_el8:
     runs-on: ubuntu-latest
@@ -196,11 +213,14 @@ jobs:
       - name: Build Dist
         run: make build-rpm
 
+      - name: Rename File
+        run: mv build/rcagent-*.rpm build/rcagent-dev.el8.x86_64.rpm
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: centos-build-el8
-            path: build/rcagent-*.rpm
+            path: build/rcagent-dev.el8.x86_64.rpm
 
   build_macos:
     runs-on: macos-latest
@@ -221,11 +241,14 @@ jobs:
           -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagent" \
           make build && make build-dmg
 
+      - name: Rename File
+        run: mv build/rcagent-*.dmg build/rcagent-dev.dmg
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: macos-build
-            path: build/rcagent-*.dmg
+            path: build/rcagent-dev.dmg
 
   build_win:
     runs-on: windows-latest
@@ -247,13 +270,16 @@ jobs:
       - name: Build Dist
         run: build/build_windows.bat
 
+      - name: Rename File
+        run: mv build/rcagent-*.msi build/rcagent-dev.msi
+
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
             name: windows-build
-            path: build/rcagent-install.msi
+            path: build/rcagent-dev.msi
 
-  deployment:
+  upload_dev:
     needs:
       - build_ubuntu22
       - build_ubuntu20
@@ -271,6 +297,8 @@ jobs:
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3
+        with:
+          path: artifacts
       - name: Checkout Repository
         uses: actions/checkout@master
       - uses: BetaHuhn/do-spaces-action@v2
@@ -279,4 +307,4 @@ jobs:
           secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
           space_name: ${{ vars.DO_SPACE_NAME }}
           space_region: ${{ vars.DO_SPACE_REGION }}
-          source: .
+          source: artifacts
