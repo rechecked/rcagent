@@ -108,7 +108,7 @@ jobs:
             name: ubuntu18-build
             path: build/rcagent-dev.ubuntu18.amd64.deb
 
-  build_debian112:
+  build_debian12:
     runs-on: ubuntu-latest
     container:
       image: debian:12
@@ -316,6 +316,7 @@ jobs:
       - build_ubuntu22
       - build_ubuntu20
       - build_ubuntu18
+      - build_debian12
       - build_debian11
       - build_debian10
       - build_centos_el9
