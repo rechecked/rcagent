@@ -143,6 +143,10 @@ func sendPost(path string, data map[string]string) ([]byte, error) {
 		return []byte{}, err
 	}
 
+	if config.DebugMode {
+		config.LogDebugf("Sending POST: %s", cfgUrl)
+	}
+
 	postBody, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", cfgUrl, bytes.NewBuffer(postBody))
 	if err != nil {
@@ -158,6 +162,10 @@ func sendGet(path string, params url.Values) ([]byte, error) {
 	cfgUrl, err := getManagerUrl(path, params)
 	if err != nil {
 		return []byte{}, err
+	}
+
+	if config.DebugMode {
+		config.LogDebugf("Sending GET: %s", cfgUrl)
 	}
 
 	req, err := http.NewRequest("GET", cfgUrl, nil)
@@ -182,6 +190,10 @@ func downloadFile(name string, url string) error {
 			r.URL.Opaque = r.URL.Path
 			return nil
 		},
+	}
+
+	if config.DebugMode {
+		config.LogDebugf("Downloading: %s", url)
 	}
 
 	resp, err := client.Get(url)
@@ -221,25 +233,25 @@ func getRequest(req *http.Request) ([]byte, error) {
 
 func getManagerUrl(path string, params url.Values) (string, error) {
 
-	// Make sure we have a proper url, default to manage.rechecked.io if empty
+	// Make sure we have a proper url, default to cloud RCM if no manager URL specified
 	cfgUrl := config.Settings.Manager.Url
 	if cfgUrl == "" {
-		cfgUrl = "https://manage.rechecked.io"
+		cfgUrl = "https://manage.rechecked.io/api"
 	}
 
-	baseUrl, err := url.Parse(cfgUrl)
+	url, err := url.Parse(cfgUrl)
 	if err != nil {
 		return "", err
 	}
 
-	baseUrl.Path += path
+	url = url.JoinPath(path)
 
 	// Add params to url if we need to
 	if len(params) > 0 {
-		baseUrl.RawQuery = params.Encode()
+		url.RawQuery = params.Encode()
 	}
 
-	return baseUrl.String(), nil
+	return url.String(), nil
 }
 
 func getHostInfo() HostInfo {
