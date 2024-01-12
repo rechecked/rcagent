@@ -3,14 +3,15 @@ package status
 import (
 	"errors"
 	"fmt"
-	"github.com/go-cmd/cmd"
-	"github.com/rechecked/rcagent/internal/config"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/go-cmd/cmd"
+	"github.com/rechecked/rcagent/internal/config"
 )
 
 type Plugin struct {
@@ -123,17 +124,22 @@ func (p *Plugin) Run() PluginResults {
 func HandlePlugins(cv config.Values) interface{} {
 
 	var res interface{}
-	data, err := getPlugins()
+	plugins, err := getPlugins()
 	if err != nil {
 		return nil
 	}
 
 	if cv.Plugin != "" {
-		plugin := Plugin{
-			name: cv.Plugin,
-			path: config.Settings.PluginDir,
-			args: cv.Args,
+		plugin, ok := plugins[cv.Plugin]
+		if !ok {
+			res = PluginResults{
+				Output:   "Plugin does not exist",
+				ExitCode: 1,
+			}
+			return res
 		}
+
+		plugin.args = cv.Args
 		err = plugin.CreateCmd()
 		if err == nil {
 			res = plugin.Run()
@@ -144,6 +150,10 @@ func HandlePlugins(cv config.Values) interface{} {
 			}
 		}
 	} else {
+		data := []string{}
+		for name := range plugins {
+			data = append(data, name)
+		}
 		res = struct {
 			Plugins []string `json:"plugins"`
 		}{
@@ -154,18 +164,38 @@ func HandlePlugins(cv config.Values) interface{} {
 	return res
 }
 
-func getPlugins() ([]string, error) {
+func getPlugins() (map[string]Plugin, error) {
 
-	plugins := []string{}
+	plugins := make(map[string]Plugin)
 
-	files, err := os.ReadDir(config.Settings.PluginDir)
+	path := config.GetPluginDirFilePath("")
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return plugins, err
 	}
 
 	for _, file := range files {
 		if !file.IsDir() {
-			plugins = append(plugins, file.Name())
+			plugins[file.Name()] = Plugin{
+				name: file.Name(),
+				path: path,
+			}
+		}
+	}
+
+	// Go through manager plugins
+	path = config.GetPluginDirFilePath("manager")
+	files, err = os.ReadDir(path)
+	if err != nil {
+		return plugins, err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			plugins[file.Name()] = Plugin{
+				name: file.Name(),
+				path: path,
+			}
 		}
 	}
 

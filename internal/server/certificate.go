@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"math/big"
 	"net"
 	"os"
@@ -46,15 +47,18 @@ func GenerateCert(certFn, keyFn string) error {
 	return nil
 }
 
-func writeToFile(file string, bytes *bytes.Buffer) error {
+func writeToFile(file string, b *bytes.Buffer) error {
 	f, err := os.Create(file)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	_, err = bytes.WriteTo(f)
+	n, err := b.WriteTo(f)
 	if err != nil {
 		return err
+	}
+	if int(n) < b.Len() {
+		return errors.New("could not write certificate to file")
 	}
 	return nil
 }

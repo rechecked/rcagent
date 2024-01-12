@@ -2,9 +2,10 @@ package status
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/shirou/gopsutil/v3/disk"
-	"strings"
 )
 
 type Disk struct {

@@ -30,8 +30,9 @@ func Run() {
 	}
 
 	// Tick every second and check for any passive checks we need
-	c := time.Tick(1 * time.Second)
-	for range c {
+	t := time.NewTicker(1 * time.Second)
+	defer t.Stop()
+	for range t.C {
 		config.CfgData.RLock()
 		runChecks()
 		config.CfgData.RUnlock()
@@ -50,8 +51,7 @@ func runChecks() {
 		dur, err := time.ParseDuration(check.Interval)
 		if err != nil {
 			config.LogDebugf("Interval Error: %s\n", err)
-			config.Log.Infof("The interval for '%s - %s' is invalid, disabling",
-				check.Hostname, check.Servicename)
+			config.Log.Infof("The interval for '%s' is invalid, disabling", check.Name())
 			config.CfgData.Checks[i].Disabled = true
 		}
 		config.CfgData.Checks[i].NextRun = now.Add(dur)
@@ -67,8 +67,8 @@ func runChecks() {
 			config.LogDebugf("%s\n", chk.String())
 		} else {
 			config.LogDebug(data)
-			config.Log.Infof("The check for '%s - %s' is invalid, check endpoints and options, disabling",
-				check.Hostname, check.Servicename)
+			config.Log.Infof("The check for '%s' is invalid, check endpoints and options, disabling",
+				check.Name())
 			config.CfgData.Checks[i].Disabled = true
 		}
 	}

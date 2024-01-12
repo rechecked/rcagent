@@ -108,6 +108,38 @@ jobs:
             name: ubuntu18-build
             path: build/rcagent-dev.ubuntu18.amd64.deb
 
+  build_debian112:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb12.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian12-build
+            path: build/rcagent-dev.deb12.amd64.deb
+
   build_debian11:
     runs-on: ubuntu-latest
     container:
@@ -293,7 +325,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: development
-      url: https://dev-downloads.nyc3.digitaloceanspaces.com
+      url: https://downloads.rechecked.io/dev/
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3

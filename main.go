@@ -49,9 +49,9 @@ func (p *program) run() error {
 func runServer(c chan struct{}) {
 	restart := make(chan struct{})
 	go server.Run(restart)
-	<- c
+	<-c
 	restart <- struct{}{}
-	<- restart
+	<-restart
 	go runServer(c)
 }
 

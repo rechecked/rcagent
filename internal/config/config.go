@@ -102,6 +102,13 @@ func (v *Values) Units() string {
 	return units
 }
 
+func (c *CheckCfg) Name() string {
+	if c.Servicename != "" {
+		return fmt.Sprintf("%s - %s", c.Hostname, c.Servicename)
+	}
+	return c.Hostname
+}
+
 func (c *CheckCfg) isEmpty() bool {
 	return c.Hostname == ""
 }
@@ -407,7 +414,7 @@ func GetConfigDirFilePath(path string) string {
 }
 
 func GetPluginDirFilePath(name string) string {
-	return filepath.Join(PluginDir, name)
+	return filepath.Join(Settings.PluginDir, name)
 }
 
 // Function to look for the config file in the normal locations

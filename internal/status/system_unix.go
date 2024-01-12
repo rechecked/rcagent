@@ -5,6 +5,7 @@ package status
 
 import (
 	"fmt"
+
 	"github.com/shirou/gopsutil/v3/host"
 )
 

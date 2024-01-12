@@ -25,7 +25,7 @@ type HostInfo struct {
 }
 
 type CheckInStatus struct {
-	NeedsConfigUpdate bool `json:"needsConfigUpdate"`
+	NeedsConfigUpdate  bool `json:"needsConfigUpdate"`
 	NeedsSecretsUpdate bool `json:"needsSecretsUpdate"`
 }
 
@@ -43,8 +43,9 @@ func Run(restart chan<- struct{}) {
 		return
 	}
 
-	c := time.Tick(1 * time.Minute)
-	for range c {
+	t := time.NewTicker(1 * time.Minute)
+	defer t.Stop()
+	for range t.C {
 		checkin()
 		validateCert(restart)
 	}
@@ -64,12 +65,12 @@ func Init() {
 
 func Sync(s, c bool) bool {
 	nu := false
-	if s == true {
+	if s {
 		if updateSecrets() {
 			nu = true
 		}
 	}
-	if c == true {
+	if c {
 		if updateConfigs() {
 			nu = true
 		}
@@ -94,7 +95,7 @@ func Register() {
 		"version":   config.Version,
 		"os":        i.OS,
 		"platform":  i.Platform,
-		"token": config.Settings.Token,
+		"token":     config.Settings.Token,
 	}
 
 	_, err := sendPost("agents/register", data)
@@ -104,7 +105,7 @@ func Register() {
 }
 
 func GetMachineId() string {
-	return getHostInfo().MachineId;
+	return getHostInfo().MachineId
 }
 
 // Send some basic data to the manager to "check in" with it, indicating
@@ -177,20 +178,20 @@ func downloadFile(name string, url string) error {
 	defer file.Close()
 
 	client := http.Client{
-        CheckRedirect: func(r *http.Request, via []*http.Request) error {
-            r.URL.Opaque = r.URL.Path
-            return nil
-        },
-    }
+		CheckRedirect: func(r *http.Request, via []*http.Request) error {
+			r.URL.Opaque = r.URL.Path
+			return nil
+		},
+	}
 
-    resp, err := client.Get(url)
-    if err != nil {
-    	return err
-    }
-    defer resp.Body.Close()
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-    _, err = io.Copy(file, resp.Body)
-    return err
+	_, err = io.Copy(file, resp.Body)
+	return err
 }
 
 func getRequest(req *http.Request) ([]byte, error) {
@@ -234,7 +235,7 @@ func getManagerUrl(path string, params url.Values) (string, error) {
 	baseUrl.Path += path
 
 	// Add params to url if we need to
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		baseUrl.RawQuery = params.Encode()
 	}
 

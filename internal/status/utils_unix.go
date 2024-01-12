@@ -4,11 +4,12 @@
 package status
 
 import (
-	"github.com/rechecked/rcagent/internal/config"
 	"os/exec"
 	"os/user"
 	"strconv"
 	"syscall"
+
+	"github.com/rechecked/rcagent/internal/config"
 )
 
 func setUser(cmd *exec.Cmd) {

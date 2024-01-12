@@ -11,7 +11,7 @@ import (
 	"github.com/rechecked/rcagent/internal/config"
 )
 
-var sanRegex = regexp.MustCompile(`[^a-z0-9_]+`);
+var sanRegex = regexp.MustCompile(`[^a-z0-9_]+`)
 
 func updateSecrets() bool {
 
@@ -85,7 +85,7 @@ func updateConfigs() bool {
 
 	if len(c.Configs) > 0 {
 		for cfg, cfgStr := range c.Configs {
-			f := config.GetConfigDirFilePath("manager/"+SanatizeFilename(cfg)+".yml")
+			f := config.GetConfigDirFilePath("manager/" + SanatizeFilename(cfg) + ".yml")
 			if err := os.WriteFile(f, []byte(cfgStr), 0666); err != nil {
 				config.Log.Error(err)
 			}
@@ -104,17 +104,29 @@ func updateConfigs() bool {
 
 	// Download plugins
 	if len(c.Plugins) > 0 {
+
+		// Remove all current files
+		err = os.RemoveAll(config.GetPluginDirFilePath("manager"))
+		if err != nil {
+			config.Log.Error(err)
+			return false
+		}
+
+		// Make sure the directory exists
+		err = os.Mkdir(config.GetPluginDirFilePath("manager"), os.ModeDir)
+		if err != nil {
+			config.Log.Error(err)
+			return false
+		}
+
 		for name, url := range c.Plugins {
 
 			if url == "" {
 				continue
 			}
 
-			// Make sure the directory exists
-			os.Mkdir(config.GetPluginDirFilePath("manager"), os.ModeDir)
-
 			// Download actual file
-			f := config.GetPluginDirFilePath("manager/"+name)
+			f := config.GetPluginDirFilePath("manager/" + name)
 			err := downloadFile(f, url)
 			if err != nil {
 				config.Log.Error(err)

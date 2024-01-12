@@ -4,8 +4,9 @@
 package status
 
 import (
-	"github.com/go-cmd/cmd"
 	"strings"
+
+	"github.com/go-cmd/cmd"
 )
 
 func getServices() ([]Service, error) {
