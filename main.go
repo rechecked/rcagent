@@ -105,8 +105,8 @@ func main() {
 
 	svcConfig := &service.Config{
 		Name:         name,
-		DisplayName:  "RCAgent",
-		Description:  "ReChecked system status and monitoring agent",
+		DisplayName:  "rcagent",
+		Description:  "ReChecked Agent - System status and monitoring agent",
 		Dependencies: deps,
 	}
 

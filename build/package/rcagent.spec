@@ -49,7 +49,7 @@ getent passwd rcagent >/dev/null || \
     -c "rcagent user account for running plugins" rcagent
 
 %post
-if [ $1 -eq 0 ]
+if [ $1 -eq 1 ]
 then
     # Install sets up systemctl service so it only runs on install
     %{_sbindir}/%{name} -a install &> /dev/null
@@ -75,7 +75,7 @@ if [ $1 -eq 2 ]
 then
     if command -v systemctl > /dev/null
     then
-        systemctl is-active --quiet {name}.service && systemctl restart {name}.service &> /dev/null
+        systemctl is-active --quiet %{name}.service && systemctl restart %{name}.service &> /dev/null
     fi
 fi
 
