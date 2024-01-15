@@ -199,7 +199,9 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Build & Test
-        run: make build && make test
+        run: |
+          cp -f `which go` /usr/bin/go
+          make build && make test
 
       - name: Build Dist
         run: make build-rpm
@@ -226,7 +228,9 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Build & Test
-        run: make build && make test
+        run: |
+          cp -f `which go` /usr/bin/go
+          make build && make test
 
       - name: Build Dist
         run: make build-rpm
