@@ -24,6 +24,10 @@ type HostInfo struct {
 	Platform  string
 }
 
+type RegisterStatus struct {
+	Activated bool `json:"activated"`
+}
+
 type CheckInStatus struct {
 	NeedsConfigUpdate  bool `json:"needsConfigUpdate"`
 	NeedsSecretsUpdate bool `json:"needsSecretsUpdate"`
@@ -82,6 +86,11 @@ func Sync(s, c bool) bool {
 // need to get a certificate we do that now.
 func Register() {
 
+	// Skip registration if we aren't using the manager
+	if !config.UsingManager() {
+		return
+	}
+
 	if config.DebugMode {
 		url, _ := getManagerUrl("", nil)
 		config.LogDebugf("Registering with RCM (%s)", url)
@@ -98,9 +107,23 @@ func Register() {
 		"token":     config.Settings.Token,
 	}
 
-	_, err := sendPost("agents/register", data)
+	resp, err := sendPost("agents/register", data)
 	if err != nil {
 		config.Log.Error(err)
+	}
+
+	// Validate that it was registered, or mention that it is waiting approval
+	if len(resp) > 0 {
+		r := RegisterStatus{}
+		err = json.Unmarshal(resp, &r)
+		if err != nil {
+			config.Log.Error(err)
+			return
+		}
+
+		if !r.Activated {
+			config.Log.Info("Activation required: Waiting for registration approval in ReChecked Manager")
+		}
 	}
 }
 
@@ -246,7 +269,7 @@ func getManagerUrl(path string, params url.Values) (string, error) {
 
 	url = url.JoinPath(path)
 
-	// Add params to url if we need to
+	// Add params to url if we need to and make sure they are url encoded
 	if len(params) > 0 {
 		url.RawQuery = params.Encode()
 	}

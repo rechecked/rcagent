@@ -106,7 +106,7 @@ func HandleInodes(cv config.Values) interface{} {
 func getDisks(units string) ([]Disk, error) {
 	var disks []Disk
 	d, err := disk.Partitions(true)
-	if err != nil {
+	if err != nil || d == nil {
 		return disks, err
 	}
 	for _, i := range d {
@@ -130,7 +130,7 @@ func getDisks(units string) ([]Disk, error) {
 func getDisksInodes(units string) ([]Inodes, error) {
 	var inodes []Inodes
 	d, err := disk.Partitions(true)
-	if err != nil {
+	if err != nil || d == nil {
 		return inodes, err
 	}
 	for _, i := range d {
