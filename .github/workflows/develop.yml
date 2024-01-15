@@ -211,13 +211,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Prereqs
+        run: yum install rpm-build systemd-rpm-macros make -y
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
-
-      - name: Install Prereqs
-        run: yum install rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test
@@ -241,13 +241,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Prereqs
+        run: yum install rpm-build systemd-rpm-macros make -y
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
-
-      - name: Install Prereqs
-        run: yum install rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test
