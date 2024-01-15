@@ -49,19 +49,35 @@ getent passwd rcagent >/dev/null || \
     -c "rcagent user account for running plugins" rcagent
 
 %post
-%{_sbindir}/%{name} -a install &> /dev/null
-if command -v systemctl > /dev/null
+if [ $1 -eq 0 ]
 then
-	systemctl disable %{name}.service &> /dev/null
+    # Install sets up systemctl service so it only runs on install
+    %{_sbindir}/%{name} -a install &> /dev/null
+    
+    # Disable on systemctl during install because we don't want to default enabled
+    if command -v systemctl > /dev/null
+    then
+        systemctl disable %{name}.service &> /dev/null
+    fi
 fi
 
 %preun
 # On uninstall stop before removing
-if [ "$1" != "1" ]
+if [ $1 -eq 0 ]
 then
 	systemctl stop %{name}.service &> /dev/null
+    %{_sbindir}/%{name} -a uninstall &> /dev/null
 fi
-%{_sbindir}/%{name} -a uninstall &> /dev/null
+
+%posttrans
+# Restart the service if it needs to be restarted after upgrade
+if [ $1 -eq 2 ]
+then
+    if command -v systemctl > /dev/null
+    then
+        systemctl is-active --quiet {name}.service && systemctl restart {name}.service &> /dev/null
+    fi
+fi
 
 %files
 %config(noreplace) %{_sysconfdir}/%{name}/config.yml
