@@ -22,7 +22,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -54,7 +54,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -86,7 +86,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -118,7 +118,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -150,7 +150,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -182,7 +182,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Setup Prereqs
         run: apt-get update -y && apt-get install -y alien make
@@ -211,8 +211,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
       - name: Install Prereqs
-        run: yum install golang rpm-build systemd-rpm-macros make -y
+        run: yum install rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test
@@ -236,8 +241,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
       - name: Install Prereqs
-        run: yum install golang rpm-build systemd-rpm-macros make -y
+        run: yum install rpm-build systemd-rpm-macros make -y
 
       - name: Build & Test
         run: make build && make test
@@ -262,7 +272,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Build & Test
         run: make build && make test
@@ -290,7 +300,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version-file: 'go.mod'
 
       - name: Build & Test
         run: go build -v && go test -v ./...
