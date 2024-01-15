@@ -145,7 +145,11 @@ func main() {
 	// Exit with error if we hit one
 	if err != nil {
 		config.Log.Error(err)
-		os.Exit(1)
+		if *action == "install" || *action == "uninstall" {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
 	}
 
 }
