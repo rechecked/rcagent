@@ -2,8 +2,6 @@ module github.com/rechecked/rcagent
 
 go 1.21
 
-toolchain go1.21.6
-
 require (
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/go-cmd/cmd v1.4.2
