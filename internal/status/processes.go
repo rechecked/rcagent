@@ -40,10 +40,10 @@ func (p ProcessList) PerfData(warn, crit string) string {
 }
 
 func HandleProcesses(cv config.Values) interface{} {
-	var procs []Process
+	procs := []Process{}
 	data, err := process.Processes()
-	if err != nil {
-		return []Process{}
+	if err != nil || data == nil {
+		return procs
 	}
 
 	for _, p := range data {
