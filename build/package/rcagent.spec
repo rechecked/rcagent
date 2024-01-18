@@ -49,7 +49,7 @@ getent passwd rcagent >/dev/null || \
     -c "rcagent user account for running plugins" rcagent
 
 %post
-if [ $1 -eq 1 ]
+if [ "$1" == "1" ]
 then
     # Install sets up systemctl service so it only runs on install
     %{_sbindir}/%{name} -a install &> /dev/null
@@ -63,7 +63,7 @@ fi
 
 %preun
 # On uninstall stop before removing
-if [ $1 -eq 0 ]
+if [ "$1" == "0" ]
 then
 	systemctl stop %{name}.service &> /dev/null
     %{_sbindir}/%{name} -a uninstall &> /dev/null
@@ -71,7 +71,7 @@ fi
 
 %posttrans
 # Restart the service if it needs to be restarted after upgrade
-if [ $1 -eq 2 ]
+if [ "$1" == "2" ]
 then
     if command -v systemctl > /dev/null
     then
