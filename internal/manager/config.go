@@ -22,7 +22,7 @@ func updateSecrets() bool {
 	}
 
 	// Make sure the directory exists
-	os.MkdirAll(config.GetConfigDirFilePath("manager"), os.ModeDir)
+	os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
 
 	f := config.GetConfigDirFilePath("manager/secrets.json")
 	if err := os.WriteFile(f, json, 0666); err != nil {
@@ -62,7 +62,7 @@ func updateConfigs() bool {
 	}
 
 	// Make sure the directory exists
-	os.MkdirAll(config.GetConfigDirFilePath("manager"), os.ModeDir)
+	os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
 
 	// Remove all config files from manager directory, this is to make sure
 	// we are synced with the manager's configs
@@ -113,7 +113,7 @@ func updateConfigs() bool {
 		}
 
 		// Make sure the directory exists
-		err = os.MkdirAll(config.GetPluginDirFilePath("manager"), os.ModeDir)
+		err = os.MkdirAll(config.GetPluginDirFilePath("manager"), 0755)
 		if err != nil {
 			config.Log.Error(err)
 			return false

@@ -122,7 +122,7 @@ func Register() {
 		}
 
 		if !r.Activated {
-			config.Log.Info("Activation required: Waiting for registration approval in ReChecked Manager")
+			config.Log.Info("ReChecked Manager Activation Required: Waiting for registration approval in ReChecked Manager")
 		}
 	}
 }

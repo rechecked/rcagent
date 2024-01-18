@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"math/big"
 	"os"
 	"time"
 
@@ -82,7 +83,7 @@ func validateCert(restart chan<- struct{}) {
 
 	err := RequestCert(certFn, keyFn)
 	if err != nil {
-
+		config.Log.Error(err)
 		return
 	}
 
@@ -106,7 +107,7 @@ func isCertRequestNeeded(fn string) bool {
 	}
 
 	// Internally generated certificates will be overwritten
-	if cert.SerialNumber.Int64() == INTERNAL_CERT_SERIAL_NUMBER {
+	if cert.SerialNumber == big.NewInt(INTERNAL_CERT_SERIAL_NUMBER) {
 		return true
 	}
 
