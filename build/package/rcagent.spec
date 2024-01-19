@@ -49,9 +49,19 @@ getent passwd rcagent >/dev/null || \
     -c "rcagent user account for running plugins" rcagent
 
 %post
-if [ $1 == 1 ]
+# If we are upgrading, restart the service if it's active and can be restarted after upgrade
+if [ $1 == 2 ] || [ "$1" = "configure" ]
 then
-    # Install sets up systemctl service so it only runs on install
+    if command -v systemctl > /dev/null
+    then
+        systemctl is-active --quiet %{name}.service && systemctl restart %{name}.service &> /dev/null
+        exit 0
+    fi
+fi
+
+# Install sets up systemctl service so it only runs on install
+if [ $1 == 1 ] || [ "$1" = "configure" ]
+then
     %{_sbindir}/%{name} -a install &> /dev/null
     
     # Disable on systemctl during install because we don't want to default enabled
@@ -63,20 +73,10 @@ fi
 
 %preun
 # On uninstall stop before removing
-if [ $1 == 0 ]
+if [ $1 == 0 ] || [ "$1" = "remove" ]
 then
 	systemctl stop %{name}.service &> /dev/null
     %{_sbindir}/%{name} -a uninstall &> /dev/null
-fi
-
-%posttrans
-# Restart the service if it needs to be restarted after upgrade
-if [ $1 == 2 ]
-then
-    if command -v systemctl > /dev/null
-    then
-        systemctl is-active --quiet %{name}.service && systemctl restart %{name}.service &> /dev/null
-    fi
 fi
 
 %files
