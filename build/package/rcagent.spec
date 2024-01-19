@@ -55,7 +55,7 @@ then
     if command -v systemctl > /dev/null
     then
         systemctl is-active --quiet %{name}.service && systemctl restart %{name}.service &> /dev/null
-        exit 0
+        systemctl list-unit-files %{name}.service &> /dev/null && exit 0
     fi
 fi
 
