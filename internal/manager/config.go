@@ -35,7 +35,7 @@ func updateSecrets() bool {
 	// Make sure the directory exists
 	os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
 
-	if err := os.WriteFile(f, json, 0666); err != nil {
+	if err := os.WriteFile(f, json, 0600); err != nil {
 		config.Log.Error(err)
 		return false
 	}

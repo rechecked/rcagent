@@ -47,7 +47,7 @@ func Run(restart chan<- struct{}) {
 		return
 	}
 
-	t := time.NewTicker(1 * time.Minute)
+	t := time.NewTicker(20 * time.Second)
 	defer t.Stop()
 	for range t.C {
 		checkin()
