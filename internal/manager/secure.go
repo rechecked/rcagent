@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"math/big"
 	"os"
 	"time"
 
@@ -12,8 +11,7 @@ import (
 )
 
 const (
-	INTERNAL_CERT_SERIAL_NUMBER = 0
-	DAYS_TO_EXPIRATION          = -30
+	DAYS_TO_EXPIRATION = -30
 )
 
 type Cert struct {
@@ -106,8 +104,8 @@ func isCertRequestNeeded(fn string) bool {
 		return true
 	}
 
-	// Internally generated certificates will be overwritten
-	if cert.SerialNumber == big.NewInt(INTERNAL_CERT_SERIAL_NUMBER) {
+	// Internally generated certificates will be overwritten by the manager version
+	if cert.Subject.Organization[0] == "ReChecked Agent" {
 		return true
 	}
 

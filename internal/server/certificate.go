@@ -80,10 +80,9 @@ func selfSignedCert() (certPEM *bytes.Buffer, certPrivKeyPEM *bytes.Buffer, err 
 
 	// Set up our certificate
 	cert := &x509.Certificate{
-		SerialNumber: big.NewInt(0),
+		SerialNumber: big.NewInt(time.Now().UnixMicro()),
 		Subject: pkix.Name{
-			Organization: []string{"ReChecked"},
-			Country:      []string{"US"},
+			Organization: []string{"ReChecked Agent"},
 		},
 		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
 		NotBefore:    time.Now(),

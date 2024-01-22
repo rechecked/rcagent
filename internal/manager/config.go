@@ -15,16 +15,26 @@ var sanRegex = regexp.MustCompile(`[^a-z0-9_]+`)
 
 func updateSecrets() bool {
 
-	json, err := sendGet("agents/update/secrets", nil)
+	params := url.Values{}
+	params.Add("machineId", getHostInfo().MachineId)
+
+	json, err := sendGet("agents/update/secrets", params)
 	if err != nil {
 		config.Log.Error(err)
 		return false
 	}
 
+	f := config.GetConfigDirFilePath("manager/secrets.json")
+
+	// If there are no secrets then return now and don't add a secrets file
+	if len(json) == 0 {
+		os.Remove(f)
+		return true
+	}
+
 	// Make sure the directory exists
 	os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
 
-	f := config.GetConfigDirFilePath("manager/secrets.json")
 	if err := os.WriteFile(f, json, 0666); err != nil {
 		config.Log.Error(err)
 		return false
