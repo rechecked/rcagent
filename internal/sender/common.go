@@ -56,29 +56,25 @@ func runChecks() {
 		}
 		config.CfgData.Checks[i].NextRun = now.Add(dur)
 
-		fmt.Println(check.Endpoint)
-
 		// Run the check and get the value data back, try to send it off if we can
 		data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
 		if err != nil {
 			config.Log.Infof("Check Error: %s\n", err)
 		}
 
+		// If we are using a plugin, we need to convert the plugin result
+		// to a check result since it will need to be to send to NRDP
+		if p, ok := data.(status.PluginResults); ok {
+			data = status.CheckResult{
+				Output:   p.Output,
+				Exitcode: p.ExitCode,
+			}
+		}
+
 		// For normal check results
 		chk, ok := data.(status.CheckResult)
 		if ok {
 			go sendToSenders(chk, check)
-			config.LogDebugf("%s\n", chk.String())
-			continue
-		}
-
-		// For plugin results (need to be formatted)
-		pChk, pOk := data.(status.PluginResults)
-		if pOk {
-			go sendToSenders(status.CheckResult{
-				Exitcode: pChk.ExitCode,
-				Output:   pChk.Output,
-			}, check)
 			config.LogDebugf("%s\n", chk.String())
 			continue
 		}
