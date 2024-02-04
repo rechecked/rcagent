@@ -6,7 +6,7 @@ In the YAML file, `checks` is a list of checks to run. You can have as many pass
 
 ## Special Values
 
-### `$HOST`
+### `$LOCAL_HOSTNAME`
 
 This value is populated with the hostname of the system the rcagent is running on.
 
@@ -38,13 +38,13 @@ You can pass all the normal URL-style parameters in the options, such as warning
 
 ```
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     interval: 5m
     endpoint: system/version
     options:
       warning: 10
       critical: 20
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: CPU Usage
     interval: 30s
     endpoint: cpu/percent

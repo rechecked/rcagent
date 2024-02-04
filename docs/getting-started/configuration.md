@@ -126,13 +126,13 @@ Next, set up the passive checks you wish to send, in this example we will send a
 
 ```
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
 	interval: 5m
 	endpoint: cpu/percent
 	options:
 	  warning: 10
 	  critical: 20
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
 	servicename: CPU Usage
 	interval: 30s
 	endpoint: cpu/percent
@@ -141,6 +141,6 @@ checks:
 	  critical: 20
 ```
 
-The $HOST variable is the hostname of the system the rcagent is running on and gets populated during runtime. The options section allows you to pass parameters just like the URL for active checks via the status API. This is why we pass warning/critical values in this way.
+The $LOCAL_HOSTNAME variable is the hostname of the system the rcagent is running on and gets populated during runtime. The options section allows you to pass parameters just like the URL for active checks via the status API. This is why we pass warning/critical values in this way.
 
 For a [full list of options](../../config/options) for [checks](../../config/checks) and [senders](../../config/options#senders) check the config file reference section.
