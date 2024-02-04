@@ -37,7 +37,7 @@ type CheckResult struct {
 }
 
 func (c *CheckResult) String() string {
-	return fmt.Sprintf("output: %s\nexitcode: %d\n", c.Output, c.Exitcode)
+	return fmt.Sprintf("CheckResult: output: %s | exitcode: %d", c.Output, c.Exitcode)
 }
 
 func GetCheckResult(chk Checkable, w, c string) CheckResult {

@@ -59,7 +59,7 @@ func runChecks() {
 		// Run the check and get the value data back, try to send it off if we can
 		data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
 		if err != nil {
-			config.Log.Infof("Check Error: %s\n", err)
+			config.Log.Infof("Error: runChecks: %s\n", err)
 		}
 
 		// If we are using a plugin, we need to convert the plugin result
