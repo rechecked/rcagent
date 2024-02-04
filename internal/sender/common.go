@@ -56,21 +56,38 @@ func runChecks() {
 		}
 		config.CfgData.Checks[i].NextRun = now.Add(dur)
 
+		fmt.Println(check.Endpoint)
+
 		// Run the check and get the value data back, try to send it off if we can
 		data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
 		if err != nil {
 			config.Log.Infof("Check Error: %s\n", err)
 		}
+
+		// For normal check results
 		chk, ok := data.(status.CheckResult)
 		if ok {
 			go sendToSenders(chk, check)
 			config.LogDebugf("%s\n", chk.String())
-		} else {
-			config.LogDebug(data)
-			config.Log.Infof("The check for '%s' is invalid, check endpoints and options, disabling",
-				check.Name())
-			config.CfgData.Checks[i].Disabled = true
+			continue
 		}
+
+		// For plugin results (need to be formatted)
+		pChk, pOk := data.(status.PluginResults)
+		if pOk {
+			go sendToSenders(status.CheckResult{
+				Exitcode: pChk.ExitCode,
+				Output:   pChk.Output,
+			}, check)
+			config.LogDebugf("%s\n", chk.String())
+			continue
+		}
+
+		// If the check is not CheckResult or PluginResult, then it's invalid so stop trying
+		config.LogDebug(data)
+		config.Log.Infof("The check for '%s' is invalid, check endpoints and options, disabling",
+			check.Name())
+		config.CfgData.Checks[i].Disabled = true
 	}
 }
 

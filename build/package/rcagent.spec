@@ -84,4 +84,3 @@ fi
 %{_sbindir}/%{name}
 
 %dir %{_libdir}/%{name}/plugins
-

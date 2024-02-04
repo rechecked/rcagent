@@ -1,13 +1,13 @@
 package config
 
 import (
-	"bytes"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"sync"
 	"time"
@@ -180,8 +180,15 @@ func InitConfig(file string, defaultFile embed.FS) error {
 
 func ParseConfig() error {
 
+	// Load the secrets file
+	var err error
+	CfgData.Secrets, err = ParseSecretsFile()
+	if err != nil {
+		Log.Error(err)
+	}
+
 	// Parse main config file
-	err := ParseFile(ConfigDefaultFile)
+	err = ParseFile(ConfigDefaultFile)
 	if err != nil {
 		return err
 	}
@@ -200,8 +207,6 @@ func ParseConfig() error {
 // and import any configurations for checks and senders. Does not return
 // actual error but logs issues.
 func ParseConfigDir() {
-
-	hostname, _ := os.Hostname()
 
 	p := GetConfigDirFilePath("")
 	i, err := os.Stat(p)
@@ -255,13 +260,16 @@ func ParseConfigDir() {
 			continue
 		}
 
-		// Replace host in file before parsing
-		bytes.ReplaceAll(yamlData, []byte("$HOST"), []byte(hostname))
+		replaceVariables(&yamlData)
 
 		// Replace secrets in file before parsing
 		if len(CfgData.Secrets) > 0 {
 			for k, v := range CfgData.Secrets {
-				bytes.ReplaceAll(yamlData, []byte(k), []byte(v))
+				// Build regex something like "\$VARIABLE(\s|\r|\n)" and append the group onto variable
+				re, err := regexp.Compile(fmt.Sprintf("\\$%s(\\s|\\r|\\n)", k))
+				if err == nil {
+					yamlData = re.ReplaceAll(yamlData, []byte(v+"$1"))
+				}
 			}
 		}
 
@@ -375,6 +383,8 @@ func ParseFile(defaultFile embed.FS) error {
 		return err
 	}
 
+	replaceVariables(&yamlData)
+
 	err = yaml.Unmarshal(yamlData, Settings)
 	if err != nil {
 		return err
@@ -442,6 +452,7 @@ func findConfig() (string, error) {
 	return "", err
 }
 
+// Gets plugin directory (global PluginDir is set during compilation and packaging)
 func getPluginDir() string {
 	if PluginDir != "" {
 		return PluginDir
@@ -461,4 +472,27 @@ func getPluginDir() string {
 		return p
 	}
 	return ""
+}
+
+// Replaces variables in a file with values using regex to validate line ends/spaces after variables.
+func replaceVariables(data *[]byte) {
+
+	hostname, _ := os.Hostname()
+
+	// Replace $LOCAL_HOSTNAME with local agent hostname
+	if hostname != "" {
+		re := regexp.MustCompile(`\$LOCAL_HOSTNAME(\s|\z)`)
+		*data = re.ReplaceAll(*data, []byte(hostname+"$1"))
+	}
+
+	// Replace all secrets if found
+	if len(CfgData.Secrets) > 0 {
+		for k, v := range CfgData.Secrets {
+			// Build regex something like "\$VARIABLE(\s|\z)" and append the group onto variable
+			re, err := regexp.Compile(fmt.Sprintf("\\$%s(\\s|\\z)", k))
+			if err == nil {
+				*data = re.ReplaceAll(*data, []byte(v+"$1"))
+			}
+		}
+	}
 }

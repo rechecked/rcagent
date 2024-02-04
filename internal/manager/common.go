@@ -246,8 +246,12 @@ func getRequest(req *http.Request) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+
 	if resp.StatusCode == http.StatusOK {
-		bodyBytes, err := io.ReadAll(resp.Body)
 		return bodyBytes, err
 	}
 

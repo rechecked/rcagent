@@ -1,6 +1,12 @@
-??/??/2023 - 1.1.0
+02/04/2024 - 1.1.0
 ==================
-- Added integration with ReChecked Manager
+- Added integration with ReChecked Manager (https://rechecked.io/rechecked-manager/)
+- Added debug logging with -D
+- Added $LOCAL_MACHINEID to local variables available
+- Updated $HOST to be $LOCAL_HOSTNAME for better local variable names
+- Updated spec file to make installs on Ubuntu/Debian add the daemon to systemd
+- Fixed issue with plugin output on error not showing stdout
+- Fixed problems with disk endpoint when disk does not have a readable size
 
 05/01/2023 - 1.0.3
 ==================

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-cmd/cmd"
+	"github.com/google/shlex"
 	"github.com/rechecked/rcagent/internal/config"
 )
 
@@ -108,11 +109,7 @@ func (p *Plugin) Run() PluginResults {
 		out = fmt.Sprintf("%s", s.Error)
 		s.Exit = 1
 	} else {
-		if s.Exit == 0 {
-			out = strings.Join(s.Stdout, "\n")
-		} else {
-			out = strings.Join(s.Stderr, "\n")
-		}
+		out = strings.Join(s.Stdout, "\n") + strings.Join(s.Stderr, "\n")
 	}
 
 	return PluginResults{
@@ -139,7 +136,7 @@ func HandlePlugins(cv config.Values) interface{} {
 			return res
 		}
 
-		plugin.args = cv.Args
+		plugin.args = parsePluginArgs(cv.Args)
 		err = plugin.CreateCmd()
 		if err == nil {
 			res = plugin.Run()
@@ -213,4 +210,14 @@ func isValidUser() bool {
 		}
 	}
 	return true
+}
+
+func parsePluginArgs(args []string) []string {
+	if len(args) == 1 {
+		args, err := shlex.Split(args[0])
+		if err == nil {
+			return args
+		}
+	}
+	return args
 }
