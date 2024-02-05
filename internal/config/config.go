@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -411,7 +412,7 @@ func ParseFile(defaultFile embed.FS) error {
 func ParseVersion(versionFile embed.FS) {
 	v, _ := versionFile.ReadFile("VERSION")
 	if Version == "" {
-		Version = string(v)
+		Version = strings.TrimSpace(string(v))
 	}
 }
 

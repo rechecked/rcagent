@@ -1,6 +1,6 @@
 GOCMD=go
 GOTEST=$(GOCMD) test
-VERSION?=$(shell cat VERSION)
+VERSION?=$(shell cat VERSION | tr -d "\n")
 RELEASE?=1
 BINARY_NAME=rcagent
 DIR_NAME=rcagent-$(VERSION)
