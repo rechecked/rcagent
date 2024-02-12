@@ -34,6 +34,7 @@ func (p *program) run() error {
 	go manager.Register()
 
 	// Set up server configuration and run
+	server.Setup()
 	c := make(chan struct{})
 	go runServer(c)
 

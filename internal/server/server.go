@@ -28,26 +28,29 @@ type serverError struct {
 
 var endpoints = make(map[string]Endpoint)
 
-func Run(restart chan struct{}) {
-
-	// Get details for server
-	hostname, _ := os.Hostname()
-	host := config.Settings.GetServerHost()
-	config.Log.Infof("Starting server: %s (%s)", hostname, host)
+func Setup() {
+	config.LogDebug("Setting up endpoints")
+	setupEndpoints()
 
 	// Check if we are using adhoc certs, if we are, generate them
 	if config.Settings.TLS.Cert == "adhoc" && config.Settings.TLS.Key == "adhoc" {
 		config.Settings.TLS.Cert = config.GetConfigFilePath("rcagent.pem")
 		config.Settings.TLS.Key = config.GetConfigFilePath("rcagent.key")
 		if !config.FileExists(config.Settings.TLS.Cert) {
+			config.LogDebug("Setting up certificates")
 			err := GenerateCert(config.Settings.TLS.Cert, config.Settings.TLS.Key)
 			if err != nil {
 				config.Log.Error(err)
 			}
 		}
 	}
+}
 
-	setupEndpoints()
+func Run(restart chan struct{}) {
+
+	// Get details for server
+	hostname, _ := os.Hostname()
+	host := config.Settings.GetServerHost()
 
 	// Add handlers and run server with config
 	mux := http.NewServeMux()
@@ -60,6 +63,7 @@ func Run(restart chan struct{}) {
 		Handler: mux,
 	}
 
+	config.Log.Infof("Starting server: %s (%s)", hostname, host)
 	go serve(srv, mux)
 
 	quit := make(chan os.Signal, 1)
