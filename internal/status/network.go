@@ -178,10 +178,10 @@ func getInterfaceDeltaStat(itr Interface, cv config.Values) InterfaceDeltaStat {
 
 	dOut := itr.BytesRecv - tmpItr.BytesRecv
 	in := float64(dOut) / timeSince.Seconds()
-	inPs := ConvertToUnit(uint64(in), cv.Units())
+	inPs := ConvertToUnit(uint64(in), cv.GetUnits())
 	dIn := itr.BytesSent - tmpItr.BytesSent
 	out := float64(dIn) / timeSince.Seconds()
-	outPs := ConvertToUnit(uint64(out), cv.Units())
+	outPs := ConvertToUnit(uint64(out), cv.GetUnits())
 
 	// Get check value
 	var cVal float64
@@ -195,11 +195,11 @@ func getInterfaceDeltaStat(itr Interface, cv config.Values) InterfaceDeltaStat {
 	}
 
 	deltaItr := InterfaceDeltaStat{
-		OutTotal:   ConvertToUnit(dOut, cv.Units()),
+		OutTotal:   ConvertToUnit(dOut, cv.GetUnits()),
 		OutPerSec:  outPs,
-		InTotal:    ConvertToUnit(dIn, cv.Units()),
+		InTotal:    ConvertToUnit(dIn, cv.GetUnits()),
 		InPerSec:   inPs,
-		Units:      cv.Units(),
+		Units:      cv.GetUnits(),
 		checkType:  cv.Against,
 		checkValue: cVal,
 	}

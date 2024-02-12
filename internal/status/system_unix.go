@@ -4,15 +4,15 @@
 package status
 
 import (
-	"fmt"
-
 	"github.com/shirou/gopsutil/v3/host"
+
+	"github.com/rechecked/rcagent/internal/config"
 )
 
 func getUsers() ([]host.UserStat, error) {
 	users, err := host.Users()
 	if err != nil {
-		fmt.Printf("%s", err)
+		config.Log.Error(err)
 		return users, err
 	}
 	return users, nil

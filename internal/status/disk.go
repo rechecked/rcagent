@@ -74,7 +74,7 @@ func (i Inodes) CheckValue() float64 {
 }
 
 func HandleDisks(cv config.Values) interface{} {
-	disks, _ := getDisks(cv.Units())
+	disks, _ := getDisks(cv.GetUnits())
 
 	// Find the specific disk if we are passing a path
 	if cv.Path != "" {
@@ -89,7 +89,7 @@ func HandleDisks(cv config.Values) interface{} {
 }
 
 func HandleInodes(cv config.Values) interface{} {
-	disks, _ := getDisksInodes(cv.Units())
+	disks, _ := getDisksInodes(cv.GetUnits())
 
 	// Find the specific disk if we are passing a path
 	if cv.Path != "" {

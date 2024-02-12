@@ -72,7 +72,7 @@ func (s SwapStatus) PerfData(warn, crit string) string {
 }
 
 func HandleMemory(cv config.Values) interface{} {
-	data, err := memoryUsage(cv.Units())
+	data, err := memoryUsage(cv.GetUnits())
 	if err != nil {
 		config.Log.Error(err)
 	}
@@ -80,7 +80,7 @@ func HandleMemory(cv config.Values) interface{} {
 }
 
 func HandleSwap(cv config.Values) interface{} {
-	data, err := swapUsage(cv.Units())
+	data, err := swapUsage(cv.GetUnits())
 	if err != nil {
 		config.Log.Error(err)
 	}

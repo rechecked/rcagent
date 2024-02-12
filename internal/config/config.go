@@ -44,6 +44,7 @@ type SenderCfg struct {
 
 type CheckCfg struct {
 	Hostname    string `yaml:"hostname"`
+	Address     string `yaml:"address"`
 	Servicename string `yaml:"servicename"`
 	Interval    string `yaml:"interval"`
 	Endpoint    string `yaml:"endpoint"`
@@ -70,13 +71,14 @@ type Values struct {
 	Warning  string
 	Critical string
 	Delta    int
-	units    string
+	Units    string
 }
 
 type Data struct {
-	Checks  []CheckCfg
-	Senders []SenderCfg
-	Secrets map[string]string
+	Checks    []CheckCfg
+	Senders   []SenderCfg
+	Secrets   map[string]string
+	HostAddrs map[string]string
 	sync.RWMutex
 }
 
@@ -92,10 +94,10 @@ var AllowedUnits = []string{"B", "kB", "MB", "GB", "TB", "PB", "KiB", "MiB", "Gi
 // Actual config data (checks, senders, secrets) after parse
 var CfgData Data
 
-func (v *Values) Units() string {
+func (v *Values) GetUnits() string {
 	units := Settings.Units
-	if v.units != "" {
-		units = v.units
+	if v.Units != "" {
+		units = v.Units
 	}
 	if units == "" || !Contains(AllowedUnits, units) {
 		units = "B"
@@ -115,7 +117,47 @@ func (c *CheckCfg) isEmpty() bool {
 }
 
 func (c *CheckCfg) apply(nc CheckCfg) {
+	if nc.Address != "" {
+		c.Address = nc.Address
+	}
+	if nc.Interval != "" {
+		c.Interval = nc.Interval
+	}
+	if nc.Endpoint != "" {
+		c.Endpoint = nc.Endpoint
+	}
 
+	// Optional values
+	if nc.Options.Plugin != "" {
+		c.Options.Plugin = nc.Options.Plugin
+	}
+	if nc.Options.Name != "" {
+		c.Options.Name = nc.Options.Name
+	}
+	if nc.Options.Path != "" {
+		c.Options.Path = nc.Options.Path
+	}
+	if len(nc.Options.Args) > 0 {
+		c.Options.Args = nc.Options.Args
+	}
+	if nc.Options.Against != "" {
+		c.Options.Against = nc.Options.Against
+	}
+	if nc.Options.Expected != "" {
+		c.Options.Expected = nc.Options.Expected
+	}
+	if nc.Options.Warning != "" {
+		c.Options.Warning = nc.Options.Warning
+	}
+	if nc.Options.Critical != "" {
+		c.Options.Critical = nc.Options.Critical
+	}
+	if nc.Options.Delta != 0 {
+		c.Options.Delta = nc.Options.Delta
+	}
+	if nc.Options.Units != "" {
+		c.Options.Units = nc.Options.Units
+	}
 }
 
 // ================================
@@ -154,7 +196,7 @@ func ParseValues(r *http.Request) Values {
 	units := r.FormValue("units")
 	validUnit := Contains(AllowedUnits, units)
 	if validUnit || units == "" {
-		v.units = units
+		v.Units = units
 	}
 
 	return v
@@ -195,6 +237,7 @@ func ParseConfig() error {
 	}
 
 	// Parse checks/sender configs in directory
+	CfgData.HostAddrs = make(map[string]string)
 	ParseConfigDir()
 
 	LogDebug("Configuration:")
@@ -301,7 +344,7 @@ func ParseConfigDir() {
 			if len(CfgData.Checks) > 0 {
 
 				// Check if a new check with same host/service name exists... if it does we need to
-				// do an additive addition to the current passive checks
+				// add the options/values from the new check onto the old one
 				for _, nCheck := range tmp.PassiveChecks {
 
 					if nCheck.isEmpty() {
@@ -310,7 +353,7 @@ func ParseConfigDir() {
 
 					i := findPassiveCheck(nCheck)
 					if i != -1 {
-						fmt.Printf("found check: %v\n", CfgData.Checks[i])
+						LogDebugf("found check: %v\n", CfgData.Checks[i])
 						CfgData.Checks[i].apply(nCheck)
 					} else {
 						CfgData.Checks = append(CfgData.Checks, nCheck)
@@ -325,8 +368,22 @@ func ParseConfigDir() {
 	}
 
 	// Make sure any checks are set to their options for check=1
-	for i := range CfgData.Checks {
+	for i, c := range CfgData.Checks {
 		CfgData.Checks[i].Options.Check = true
+
+		// If it's a host, and has an address, add to host addrs
+		if c.Servicename == "" && c.Address != "" {
+			CfgData.HostAddrs[c.Hostname] = c.Address
+		}
+	}
+
+	// Loop over once more for services only and replace $HOST_ADDRESS for plugin args
+	for i, c := range CfgData.Checks {
+		if c.Servicename != "" && c.Options.Plugin != "" {
+			for k, a := range c.Options.Args {
+				CfgData.Checks[i].Options.Args[k] = strings.ReplaceAll(a, "$HOST_ADDRESS", CfgData.HostAddrs[c.Hostname])
+			}
+		}
 	}
 
 }

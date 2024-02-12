@@ -25,7 +25,7 @@ func TestOverrides(t *testing.T) {
 
 	// If units does not show up as GB then failed
 	v := ParseValues(req)
-	if v.Units() != "GB" {
+	if v.GetUnits() != "GB" {
 		t.Log("Units were not properly applied to config values")
 		t.Fail()
 	}
@@ -39,7 +39,7 @@ func TestOverrides(t *testing.T) {
 	}
 
 	v = ParseValues(req)
-	if v.Units() != "B" {
+	if v.GetUnits() != "B" {
 		t.Log("Units should default to B")
 		t.Fail()
 	}

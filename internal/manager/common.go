@@ -17,6 +17,11 @@ import (
 	"github.com/rechecked/rcagent/internal/config"
 )
 
+const (
+	DEFAULT_ACTIVIATION_WAIT_TIME   = 60  // 1 Minute
+	DEFAULT_LIMIT_REACHED_WAIT_TIME = 600 // 10 Minutes
+)
+
 type HostInfo struct {
 	Hostname  string
 	MachineId string
@@ -25,7 +30,8 @@ type HostInfo struct {
 }
 
 type RegisterStatus struct {
-	Activated bool `json:"activated"`
+	Activated    bool `json:"activated"`
+	LimitReached bool `json:"limitReached"`
 }
 
 type CheckInStatus struct {
@@ -121,8 +127,18 @@ func Register() {
 			return
 		}
 
+		// If we are waiting for approval, then wait to try again
 		if !r.Activated {
 			config.Log.Info("ReChecked Manager Activation Required: Waiting for registration approval in ReChecked Manager")
+			time.Sleep(time.Second * DEFAULT_ACTIVIATION_WAIT_TIME)
+			Register()
+		}
+
+		// If the org's agent limit is reached, we can do the same as above but with limit message
+		if r.LimitReached {
+			config.Log.Info("ReChecked Manager Agents Limit Reached: Cannot register with ReChecked Manager")
+			time.Sleep(time.Second * DEFAULT_LIMIT_REACHED_WAIT_TIME)
+			Register()
 		}
 	}
 }
@@ -166,9 +182,7 @@ func sendPost(path string, data map[string]string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	if config.DebugMode {
-		config.LogDebugf("Sending POST: %s", cfgUrl)
-	}
+	config.LogDebugf("Sending POST: %s", cfgUrl)
 
 	postBody, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", cfgUrl, bytes.NewBuffer(postBody))
@@ -187,9 +201,7 @@ func sendGet(path string, params url.Values) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	if config.DebugMode {
-		config.LogDebugf("Sending GET: %s", cfgUrl)
-	}
+	config.LogDebugf("Sending GET: %s", cfgUrl)
 
 	req, err := http.NewRequest("GET", cfgUrl, nil)
 	if err != nil {
