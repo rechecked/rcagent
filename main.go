@@ -5,13 +5,17 @@ package main
 import (
 	"embed"
 	"flag"
-	"github.com/kardianos/service"
-	"github.com/rechecked/rcagent/internal/config"
-	"github.com/rechecked/rcagent/internal/sender"
-	"github.com/rechecked/rcagent/internal/server"
+	"fmt"
 	"log"
 	"os"
 	"runtime"
+
+	"github.com/kardianos/service"
+
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/manager"
+	"github.com/rechecked/rcagent/internal/sender"
+	"github.com/rechecked/rcagent/internal/server"
 )
 
 type program struct {
@@ -26,22 +30,36 @@ func (p *program) Start(s service.Service) error {
 
 func (p *program) run() error {
 
+	// Register with the manager on startup
+	go manager.Register()
+
 	// Set up server configuration and run
-	go server.Run(logger)
+	server.Setup()
+	c := make(chan struct{})
+	go runServer(c)
 
 	// If we have a sender (passive checks)
 	go sender.Run()
 
-	// Do work here
+	// Connect to the manager for sync
+	go manager.Run(c)
+
 	return nil
+}
+
+func runServer(c chan struct{}) {
+	restart := make(chan struct{})
+	go server.Run(restart)
+	<-c
+	restart <- struct{}{}
+	<-restart
+	go runServer(c)
 }
 
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
 	return nil
 }
-
-var logger service.Logger
 
 //go:embed build/package/config.yml
 var defaultConfigFile embed.FS
@@ -54,13 +72,21 @@ func main() {
 	// All actions the service can perform
 	action := flag.String("a", "run", "Service action to run: 'install', 'uninstall', or 'run'. Default is 'run'.")
 	configFile := flag.String("f", "", "Config file location")
+	debugMode := flag.Bool("D", false, "Force debug mode")
 	version := flag.Bool("v", false, "Show version of rcagent")
+	machineId := flag.Bool("m", false, "Show the machineID for this system")
 	flag.Parse()
 
 	// Parse/set version then show if someone does -v
 	config.ParseVersion(defaultVersion)
 	if *version {
-		log.Printf("ReChecked Agent, version: %s\n", config.Version)
+		fmt.Printf("ReChecked Agent, version: %s\n", config.Version)
+		os.Exit(0)
+	}
+
+	// Display the machine id (useful for debugging/dev/testing)
+	if *machineId {
+		fmt.Printf("Machine ID: %s\n", manager.GetMachineId())
 		os.Exit(0)
 	}
 
@@ -72,6 +98,7 @@ func main() {
 			"After=network-online.target syslog.target",
 		}
 	}
+
 	// Change name on macos to conform to macos
 	if runtime.GOOS == "darwin" {
 		name = "io.rechecked.rcagent"
@@ -79,17 +106,9 @@ func main() {
 
 	svcConfig := &service.Config{
 		Name:         name,
-		DisplayName:  "RCAgent",
-		Description:  "ReChecked system status and monitoring agent",
+		DisplayName:  "rcagent",
+		Description:  "ReChecked Agent - System status and monitoring agent",
 		Dependencies: deps,
-	}
-
-	// Initialize config settings (no config.yml on install)
-	if *action == "run" {
-		err := config.ParseFile(*configFile, defaultConfigFile)
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 
 	// Initialize service
@@ -100,9 +119,18 @@ func main() {
 	}
 
 	// Initialize service logger
-	logger, err = s.Logger(nil)
+	config.Log, err = s.Logger(nil)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Initialize config settings (no config.yml on install)
+	if *action == "run" {
+		config.DebugMode = *debugMode // Force debug mode on if we set it with -D
+		err := config.InitConfig(*configFile, defaultConfigFile)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Run actions for the service (run, install, uninstall)
@@ -117,8 +145,12 @@ func main() {
 
 	// Exit with error if we hit one
 	if err != nil {
-		logger.Error(err)
-		os.Exit(1)
+		config.Log.Error(err)
+		if *action == "install" || *action == "uninstall" {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
 	}
 
 }

@@ -1,3 +1,14 @@
+02/12/2024 - 1.1.0
+==================
+- Added integration with ReChecked Manager (https://rechecked.io/rechecked-manager/)
+- Added debug logging with -D option
+- Added "Address" variable for Hosts in passive check configurations
+- Added $HOST_ADDRESS variable, which to be used in plugin arguments for passive checks
+- Updated $HOST to be $LOCAL_HOSTNAME for better local variable names
+- Updated spec file to make installs on Ubuntu/Debian add the daemon to systemd
+- Fixed issue with plugin output on error not showing stdout
+- Fixed problems with disk endpoint when disk does not have a readable size
+
 06/25/2023 - 1.0.4
 ==================
 - Fixed passive check plugins endpoint not able to run due to invalid check error

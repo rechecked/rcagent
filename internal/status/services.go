@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+
 	"github.com/rechecked/rcagent/internal/config"
 )
 

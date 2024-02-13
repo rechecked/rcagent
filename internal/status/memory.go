@@ -2,9 +2,10 @@ package status
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/shirou/gopsutil/v3/mem"
-	"strings"
 )
 
 type MemoryStatus struct {
@@ -71,44 +72,51 @@ func (s SwapStatus) PerfData(warn, crit string) string {
 }
 
 func HandleMemory(cv config.Values) interface{} {
-	data, err := memoryUsage(cv.Units())
+	data, err := memoryUsage(cv.GetUnits())
 	if err != nil {
-		return MemoryStatus{}
+		config.Log.Error(err)
 	}
 	return data
 }
 
 func HandleSwap(cv config.Values) interface{} {
-	data, err := swapUsage(cv.Units())
+	data, err := swapUsage(cv.GetUnits())
 	if err != nil {
-		return SwapStatus{}
+		config.Log.Error(err)
 	}
 	return data
 }
 
 func memoryUsage(units string) (MemoryStatus, error) {
+	m := MemoryStatus{}
 	v, err := mem.VirtualMemory()
-	// usedPercent is rounded for some reason, so we are
-	// calculating that ourselves which is just used/total*100
-	mem := MemoryStatus{
-		Total:       ConvertToUnit(v.Total, units),
-		Available:   ConvertToUnit(v.Available, units),
-		Used:        ConvertToUnit(v.Used, units),
-		Free:        ConvertToUnit(v.Free, units),
-		UsedPercent: (float64(v.Used) / float64(v.Total) * 100),
-		Units:       units,
+
+	m.Units = units
+	if v != nil {
+		m.Total = ConvertToUnit(v.Total, units)
+		m.Available = ConvertToUnit(v.Available, units)
+		m.Used = ConvertToUnit(v.Used, units)
+		m.Free = ConvertToUnit(v.Free, units)
+
+		// usedPercent is rounded for some reason, so we are
+		// calculating that ourselves which is just used/total*100
+		m.UsedPercent = (float64(v.Used) / float64(v.Total) * 100)
 	}
-	return mem, err
+
+	return m, err
 }
 
 func swapUsage(units string) (SwapStatus, error) {
+	ss := SwapStatus{}
 	s, err := mem.SwapMemory()
-	swap := SwapStatus{
-		Total:       ConvertToUnit(s.Total, units),
-		Used:        ConvertToUnit(s.Used, units),
-		Free:        ConvertToUnit(s.Free, units),
-		UsedPercent: s.UsedPercent,
-		Units:       units,
+
+	ss.Units = units
+	if s != nil {
+		ss.Total = ConvertToUnit(s.Total, units)
+		ss.Used = ConvertToUnit(s.Used, units)
+		ss.Free = ConvertToUnit(s.Free, units)
+		ss.UsedPercent = s.UsedPercent
 	}
-	return swap, err
+
+	return ss, err
 }

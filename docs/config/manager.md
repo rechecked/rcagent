@@ -12,7 +12,7 @@ Options with a * next to them are **required**.
 
 Optional URL value to the manager.
 
-**Default:** `https://manage.rechecked.io`
+**Default:** `https://manage.rechecked.io/api`
 
 ### `apikey` *
 

@@ -6,9 +6,13 @@ In the YAML file, `checks` is a list of checks to run. You can have as many pass
 
 ## Special Values
 
-### `$HOST`
+### `$LOCAL_HOSTNAME`
 
 This value is populated with the hostname of the system the rcagent is running on.
+
+### `$HOST_ADDRESS`
+
+The value of the host's `address` field. This variable can only be used n the plugin `args` but is available for the host and the services.
 
 ## Config Options
 
@@ -17,6 +21,10 @@ Options with a * next to them are **required**.
 ### `hostname` *
 
 The hostname associated with the passive check.
+
+### `address`
+
+For hosts, you can define an address variable which sets `$HOST_ADDRESS` which can be used in plugin `args`.
 
 ### `servicename`
 
@@ -38,13 +46,13 @@ You can pass all the normal URL-style parameters in the options, such as warning
 
 ```
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     interval: 5m
     endpoint: system/version
     options:
       warning: 10
       critical: 20
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: CPU Usage
     interval: 30s
     endpoint: cpu/percent

@@ -262,13 +262,13 @@ senders:
     type: nrdp
 
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     interval: 5m
     endpoint: system/version
     options:
       warning: 10
       critical: 20
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: CPU Usage
     interval: 30s
     endpoint: cpu/percent

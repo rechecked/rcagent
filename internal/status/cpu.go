@@ -2,10 +2,11 @@ package status
 
 import (
 	"fmt"
-	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/cpu"
 	"strings"
 	"time"
+
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 type CPUStatus struct {
@@ -41,7 +42,7 @@ func (c CPUStatus) LongOutput() string {
 		if n > 1 {
 			models += fmt.Sprintf("%d x %s", n, c)
 		} else {
-			models += fmt.Sprintf("%s", c)
+			models += c
 		}
 	}
 
@@ -62,17 +63,24 @@ func (c CPUStatus) CheckValue() float64 {
 
 func HandleCPU(cv config.Values) interface{} {
 	waitTime := 500 * time.Millisecond
+
 	// Custom wait time for cpu usage (delta=<seconds>)
 	/*
 	   if cv.Delta > 0 {
 	       waitTime = time.Duration(cv.Delta) * time.Second
 	   }
 	*/
+
 	p, err := cpu.Percent(waitTime, false)
+	if err != nil {
+		return nil
+	}
+
 	i, err := cpu.Info()
 	if err != nil {
 		return nil
 	}
+
 	return CPUStatus{
 		Percent: p,
 		Units:   "%",

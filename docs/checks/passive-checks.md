@@ -36,11 +36,11 @@ Each check can be set with a pecific `interval` time, which is per check. There 
 
 ### Example Host Check
 
-The variable `$HOST` will be replaced with the hostname of the rcagent system
+The variable `$LOCAL_HOSTNAME` will be replaced with the hostname of the rcagent system
 
 ```
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     interval: 5m
     endpoint: system/version
     options:
@@ -54,7 +54,7 @@ Example of service checks, including running a plugin as a passive service check
 
 ```
 checks:
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: Custom Plugin
     interval: 5m
     endpoint: plugins
@@ -63,21 +63,21 @@ checks:
       args:
         - -m "hello and test!"
         - --dir /test/dir
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: CPU Usage
     interval: 30s
     endpoint: cpu/percent
     options:
       warning: 10
       critical: 20
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: Memory Usage
     interval: 5m
     endpoint: memory/virtual
     options:
       warning: 80
       critical: 90
-  - hostname: $HOST
+  - hostname: $LOCAL_HOSTNAME
     servicename: Disk Usage - C:
     interval: 1h
     endpoint: disk

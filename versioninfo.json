@@ -22,14 +22,14 @@
         "Comments": "",
         "CompanyName": "ReChecked",
         "FileDescription": "ReChecked system status and monitoring agent.",
-        "FileVersion": "v1.0.4.0",
+        "FileVersion": "v1.1.0.0",
         "InternalName": "rcagent.exe",
         "LegalCopyright": "(c) 2023 ReChecked",
         "LegalTrademarks": "",
         "OriginalFilename": "",
         "PrivateBuild": "",
         "ProductName": "ReChecked Agent",
-        "ProductVersion": "v1.0.4.0",
+        "ProductVersion": "v1.1.0.0",
         "SpecialBuild": ""
     },
     "VarFileInfo": {

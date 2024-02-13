@@ -1,0 +1,345 @@
+
+name: Go Test/Build Dev
+
+on:
+  push:
+    branches: [ "develop" ]
+
+env:
+  RELEASE: ${{ github.run_id }}
+
+jobs:
+
+  build_ubuntu22:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu22.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu22-build
+            path: build/rcagent-dev.ubuntu22.amd64.deb
+
+  build_ubuntu20:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu20.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu20-build
+            path: build/rcagent-dev.ubuntu20.amd64.deb
+
+  build_ubuntu18:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:18.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.ubuntu18.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: ubuntu18-build
+            path: build/rcagent-dev.ubuntu18.amd64.deb
+
+  build_debian12:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb12.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian12-build
+            path: build/rcagent-dev.deb12.amd64.deb
+
+  build_debian11:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:11
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb11.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian11-build
+            path: build/rcagent-dev.deb11.amd64.deb
+
+  build_debian10:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup Prereqs
+        run: apt-get update -y && apt-get install -y alien make
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-deb
+
+      - name: Rename File
+        run: mv build/rcagent_*.deb build/rcagent-dev.deb10.amd64.deb
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: debian10-build
+            path: build/rcagent-dev.deb10.amd64.deb
+
+  build_centos_el9:
+    runs-on: ubuntu-latest
+    container:
+      image: tgagor/centos:stream9
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Prereqs
+        run: yum install golang rpm-build systemd-rpm-macros make -y
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-rpm
+
+      - name: Rename File
+        run: mv build/rcagent-*.rpm build/rcagent-dev.el9.x86_64.rpm
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: centos-build-el9
+            path: build/rcagent-dev.el9.x86_64.rpm
+
+  build_centos_el8:
+    runs-on: ubuntu-latest
+    container:
+      image: tgagor/centos:stream8
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Prereqs
+        run: yum install golang rpm-build systemd-rpm-macros make -y
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: make build-rpm
+
+      - name: Rename File
+        run: mv build/rcagent-*.rpm build/rcagent-dev.el8.x86_64.rpm
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: centos-build-el8
+            path: build/rcagent-dev.el8.x86_64.rpm
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build & Test
+        run: make build && make test
+
+      - name: Build Dist
+        run: |
+          LDFLAGS="-X github.com/rechecked/rcagent/internal/config.PluginDir=/usr/local/rcagent/plugins \
+          -X github.com/rechecked/rcagent/internal/config.ConfigDir=/etc/rcagent" \
+          make build && make build-dmg
+
+      - name: Rename File
+        run: mv build/rcagent-*.dmg build/rcagent-dev.dmg
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: macos-build
+            path: build/rcagent-dev.dmg
+
+  build_win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build & Test
+        run: go build -v && go test -v ./...
+
+      - name: Set path for candle and light
+        run: echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Build Dist
+        run: build/build_windows.bat
+
+      - name: Rename File
+        run: mv build/rcagent-*.msi build/rcagent-dev.msi
+
+      - name: Archive Build
+        uses: actions/upload-artifact@v3
+        with:
+            name: windows-build
+            path: build/rcagent-dev.msi
+
+  upload_dev:
+    needs:
+      - build_ubuntu22
+      - build_ubuntu20
+      - build_ubuntu18
+      - build_debian12
+      - build_debian11
+      - build_debian10
+      - build_centos_el9
+      - build_centos_el8
+      - build_macos
+      - build_win
+    runs-on: ubuntu-latest
+    environment: 
+      name: development
+      url: https://downloads.rechecked.io/dev/
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Move artifacts to upload
+        run: mkdir upload && mv artifacts/*/* upload
+
+      - name: Upload to DO spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_SPACES_ACCESS_KEY}}
+          secret_key: ${{ secrets.DO_SPACES_SECRET_KEY }}
+          space_name: ${{ vars.DO_SPACE_NAME }}
+          space_region: ${{ vars.DO_SPACE_REGION }}
+          source: upload
+          out_dir: dev

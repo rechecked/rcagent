@@ -1,5 +1,8 @@
 ./config.yml
+./config.yaml
 build/bin/*
+site
+etc
 build/rcagent.spec
 site
 rcagent.pem
@@ -11,3 +14,6 @@ rcagent-*.msi
 rcagent-*.tar.gz
 rcagent-*.rpm
 rcagent-*.deb
+conf.d
+cover.out
+plugins/manager

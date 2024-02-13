@@ -2,9 +2,10 @@ package status
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/shirou/gopsutil/v3/disk"
-	"strings"
 )
 
 type Disk struct {
@@ -73,7 +74,7 @@ func (i Inodes) CheckValue() float64 {
 }
 
 func HandleDisks(cv config.Values) interface{} {
-	disks, _ := getDisks(cv.Units())
+	disks, _ := getDisks(cv.GetUnits())
 
 	// Find the specific disk if we are passing a path
 	if cv.Path != "" {
@@ -88,7 +89,7 @@ func HandleDisks(cv config.Values) interface{} {
 }
 
 func HandleInodes(cv config.Values) interface{} {
-	disks, _ := getDisksInodes(cv.Units())
+	disks, _ := getDisksInodes(cv.GetUnits())
 
 	// Find the specific disk if we are passing a path
 	if cv.Path != "" {
@@ -110,17 +111,27 @@ func getDisks(units string) ([]Disk, error) {
 	}
 	for _, i := range d {
 		if !config.Contains(config.Settings.ExcludeFsTypes, i.Fstype) {
-			u, _ := disk.Usage(i.Mountpoint)
-			disks = append(disks, Disk{
+			u, err := disk.Usage(i.Mountpoint)
+			if err != nil {
+				config.LogDebug(err)
+			}
+			d := Disk{
 				Path:        i.Mountpoint,
 				Device:      i.Device,
 				Fstype:      i.Fstype,
-				Total:       ConvertToUnit(u.Total, units),
-				Free:        ConvertToUnit(u.Free, units),
-				Used:        ConvertToUnit(u.Used, units),
-				UsedPercent: u.UsedPercent,
+				Total:       0,
+				Free:        0,
+				Used:        0,
+				UsedPercent: 0,
 				Units:       units,
-			})
+			}
+			if u != nil {
+				d.Total = ConvertToUnit(u.Total, units)
+				d.Free = ConvertToUnit(u.Free, units)
+				d.Used = ConvertToUnit(u.Used, units)
+				d.UsedPercent = u.UsedPercent
+			}
+			disks = append(disks, d)
 		}
 	}
 	return disks, nil
@@ -134,16 +145,26 @@ func getDisksInodes(units string) ([]Inodes, error) {
 	}
 	for _, i := range d {
 		if !config.Contains(config.Settings.ExcludeFsTypes, i.Fstype) {
-			u, _ := disk.Usage(i.Mountpoint)
-			inodes = append(inodes, Inodes{
+			u, err := disk.Usage(i.Mountpoint)
+			if err != nil {
+				config.LogDebug(err)
+			}
+			n := Inodes{
 				Path:        i.Mountpoint,
 				Device:      i.Device,
 				Fstype:      i.Fstype,
-				Total:       float64(u.InodesTotal),
-				Free:        float64(u.InodesFree),
-				Used:        float64(u.InodesUsed),
-				UsedPercent: u.InodesUsedPercent,
-			})
+				Total:       0,
+				Free:        0,
+				Used:        0,
+				UsedPercent: 0,
+			}
+			if u != nil {
+				n.Total = float64(u.InodesTotal)
+				n.Free = float64(u.InodesFree)
+				n.Used = float64(u.InodesUsed)
+				n.UsedPercent = u.InodesUsedPercent
+			}
+			inodes = append(inodes, n)
 		}
 	}
 	return inodes, nil

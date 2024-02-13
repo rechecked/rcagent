@@ -22,10 +22,12 @@ type CheckableExtra interface {
 	LongOutput() string
 }
 
+/*
 type apiError struct {
 	Message string `json:"message"`
 	Status  string `json:"status"`
 }
+*/
 
 type CheckResult struct {
 	Exitcode   int    `json:"exitcode"`
@@ -35,7 +37,7 @@ type CheckResult struct {
 }
 
 func (c *CheckResult) String() string {
-	return fmt.Sprintf("output: %s\nexitcode: %d\n", c.Output, c.Exitcode)
+	return fmt.Sprintf("CheckResult: output: %s | exitcode: %d", c.Output, c.Exitcode)
 }
 
 func GetCheckResult(chk Checkable, w, c string) CheckResult {
@@ -85,7 +87,7 @@ func createPerfData(pre, w, c string) string {
 		perf = append(perf, w)
 	} else if c != "" {
 		// Still add the ; if we are going to be adding a critical value
-		perf = append(perf, "");
+		perf = append(perf, "")
 	}
 	if c != "" {
 		perf = append(perf, c)
@@ -148,9 +150,11 @@ func isInRange(r string, value float64) bool {
 	return false
 }
 
+/*
 func errorCheckResult(err error) CheckResult {
 	return CheckResult{
 		Exitcode: 3,
 		Output:   fmt.Sprintf("UNKOWN - %s", err),
 	}
 }
+*/

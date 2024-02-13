@@ -2,90 +2,99 @@ package sender
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/manager"
 	"github.com/rechecked/rcagent/internal/server"
 	"github.com/rechecked/rcagent/internal/status"
-	"time"
 )
 
 // Set up passive related loop
 func Run() {
 
+	manager.Init()
+
 	// Verify we have checks to run...
-	checks := config.Settings.PassiveChecks
-	if len(checks) == 0 {
-		if config.Settings.Debug {
-			fmt.Print("Stopping senders: No checks configured\n")
-		}
-		return
+	if len(config.CfgData.Checks) == 0 {
+		config.LogDebug("SENDER: No checks configured")
+	} else {
+		config.LogDebugf("SENDER: %d checks configured", len(config.CfgData.Checks))
 	}
 
 	// Verify we have senders to send to...
-	if len(config.Settings.Senders) == 0 {
-		if config.Settings.Debug {
-			fmt.Print("Stopping senders: No senders configured\n")
-		}
-		return
+	if len(config.CfgData.Senders) == 0 {
+		config.LogDebug("SENDER: No senders configured")
+	} else {
+		config.LogDebugf("SENDER: %d senders configured", len(config.CfgData.Senders))
 	}
 
 	// Tick every second and check for any passive checks we need
-	// to send, then process them and continue... until program exit
-	c := time.Tick(1 * time.Second)
-	for range c {
-		now := time.Now()
-		for i, check := range checks {
-			if check.Disabled || check.NextRun.After(now) {
-				continue
-			}
+	t := time.NewTicker(1 * time.Second)
+	defer t.Stop()
+	for range t.C {
+		config.CfgData.RLock()
+		runChecks()
+		config.CfgData.RUnlock()
+	}
+}
 
-			// Parse check interval duration and error if it is bad and disable,
-			// then set next run time if it isn't disabled
-			dur, err := time.ParseDuration(check.Interval)
-			if err != nil {
-				if config.Settings.Debug {
-					fmt.Printf("Interval Error: %s\n", err)
-				}
-				fmt.Printf("The interval for '%s - %s' is invalid, disabling",
-					check.Hostname, check.Servicename)
-				checks[i].Disabled = true
-			}
-			checks[i].NextRun = now.Add(dur)
-
-			// Run the check and get the value data back, try to send it off if we can
-			data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
-			if err != nil {
-				fmt.Printf("Check Error: %s\n", err)
-			}
-
-			// If we are using a plugin, we need to convert the plugin result
-			// to a check result since it will need to be to send to NRDP
-			if p, ok := data.(status.PluginResults); ok {
-				data = status.CheckResult{
-					Output: p.Output,
-					Exitcode: p.ExitCode,
-				}
-			}
-
-			chk, ok := data.(status.CheckResult)
-			if ok {
-				go sendToSenders(chk, check)
-			} else {
-				fmt.Printf("The check for '%s - %s' is invalid, check endpoints and options, disabling",
-					check.Hostname, check.Servicename)
-				checks[i].Disabled = true
-			}
-			
+func runChecks() {
+	now := time.Now()
+	for i, check := range config.CfgData.Checks {
+		if check.Disabled || check.NextRun.After(now) {
+			continue
 		}
+
+		// Parse check interval duration and error if it is bad and disable,
+		// then set next run time if it isn't disabled
+		dur, err := time.ParseDuration(check.Interval)
+		if err != nil {
+			config.LogDebugf("Interval Error: %s\n", err)
+			config.Log.Infof("The interval for '%s' is invalid, disabling", check.Name())
+			config.CfgData.Checks[i].Disabled = true
+		}
+		config.CfgData.Checks[i].NextRun = now.Add(dur)
+
+		// Run the check and get the value data back, try to send it off if we can
+		data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
+		if err != nil {
+			config.Log.Infof("Error: runChecks: %s\n", err)
+		}
+
+		// If we are using a plugin, we need to convert the plugin result
+		// to a check result since it will need to be to send to NRDP
+		if p, ok := data.(status.PluginResults); ok {
+			data = status.CheckResult{
+				Output:   p.Output,
+				Exitcode: p.ExitCode,
+			}
+		}
+
+		// For normal check results
+		chk, ok := data.(status.CheckResult)
+		if ok {
+			go sendToSenders(chk, check)
+			config.LogDebugf("%s\n", chk.String())
+			continue
+		}
+
+		// If the check is not CheckResult or PluginResult, then it's invalid so stop trying
+		config.LogDebug(data)
+		config.Log.Infof("The check for '%s' is invalid, check endpoints and options, disabling",
+			check.Name())
+		config.CfgData.Checks[i].Disabled = true
 	}
 }
 
 func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
-	if config.Settings.Debug {
-		fmt.Printf("Sending check: \n%s\n", chk.String())
-	}
+
+	config.LogDebugf("Sending check: %s\n", chk.String())
 
 	// Get all senders
-	senders := config.Settings.Senders
+	config.CfgData.RLock()
+	senders := config.CfgData.Senders
+	config.CfgData.RUnlock()
 
 	for _, sender := range senders {
 		// We only have NRDP for now but more later?
@@ -93,7 +102,7 @@ func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
 			s := new(NRDPServer)
 			err := s.SetConn(sender.Url, sender.Token)
 			if err != nil {
-				fmt.Printf("Error: sendToSenders: %s", err)
+				config.Log.Errorf("Error: sendToSenders: %s", err)
 			}
 
 			// Set output
@@ -133,11 +142,9 @@ func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
 			}
 			resp, err := s.Send(checks)
 			if err != nil {
-				fmt.Printf("Error: sendToSenders: %s", err)
+				config.Log.Errorf("Error: sendToSenders: %s", err)
 			}
-			if config.Settings.Debug {
-				fmt.Printf("Sender NRDP repsonse: %s", resp.String())
-			}
+			config.LogDebugf("Sender NRDP repsonse: %s", resp.String())
 		}
 	}
 }

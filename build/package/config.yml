@@ -26,7 +26,7 @@ pluginTypes:
   .sh:
     - /bin/sh
   .py:
-    - python3
+    - python
   .pl:
     - perl
   .php:
@@ -55,17 +55,17 @@ pluginTypes:
 #    type: nrdp
 
 # Passive check configuration
-# $HOST is alias for the hostname of the server,
+# $LOCAL_HOSTNAME is alias for the hostname of the server,
 # since this may change, you may want to hardcode it
 
 #checks:
-#  - hostname: $HOST
+#  - hostname: $LOCAL_HOSTNAME
 #    interval: 5m
 #    endpoint: system/version
 #    options:
 #      warning: 10
 #      critical: 20
-#  - hostname: $HOST
+#  - hostname: $LOCAL_HOSTNAME
 #    servicename: CPU Usage
 #    interval: 30s
 #    endpoint: cpu/percent
@@ -73,4 +73,6 @@ pluginTypes:
 #      warning: 10
 #      critical: 20
 
-
+manager:
+  url: https://localhost:8080
+  apikey: 27F772B33B624CB9BB5A4ED6F331FC7B

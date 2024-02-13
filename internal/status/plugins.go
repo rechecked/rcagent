@@ -3,15 +3,16 @@ package status
 import (
 	"errors"
 	"fmt"
-	"github.com/go-cmd/cmd"
-	"github.com/rechecked/rcagent/internal/config"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/go-cmd/cmd"
+	"github.com/google/shlex"
+	"github.com/rechecked/rcagent/internal/config"
 )
 
 type Plugin struct {
@@ -67,9 +68,7 @@ func (p *Plugin) CreateCmd() error {
 		p.cmd = append(p.cmd, p.args...)
 	}
 
-	if config.Settings.Debug {
-		fmt.Printf("Command: %s\n", p.cmd)
-	}
+	config.LogDebugf("Command: %s\n", p.cmd)
 
 	return nil
 }
@@ -110,11 +109,7 @@ func (p *Plugin) Run() PluginResults {
 		out = fmt.Sprintf("%s", s.Error)
 		s.Exit = 1
 	} else {
-		if s.Exit == 0 {
-			out = strings.Join(s.Stdout, "\n")
-		} else {
-			out = strings.Join(s.Stderr, "\n")
-		}
+		out = strings.Join(s.Stdout, "\n") + strings.Join(s.Stderr, "\n")
 	}
 
 	return PluginResults{
@@ -126,17 +121,22 @@ func (p *Plugin) Run() PluginResults {
 func HandlePlugins(cv config.Values) interface{} {
 
 	var res interface{}
-	data, err := getPlugins()
+	plugins, err := getPlugins()
 	if err != nil {
 		return nil
 	}
 
 	if cv.Plugin != "" {
-		plugin := Plugin{
-			name: cv.Plugin,
-			path: config.Settings.PluginDir,
-			args: cv.Args,
+		plugin, ok := plugins[cv.Plugin]
+		if !ok {
+			res = PluginResults{
+				Output:   "Plugin does not exist",
+				ExitCode: 1,
+			}
+			return res
 		}
+
+		plugin.args = parsePluginArgs(cv.Args)
 		err = plugin.CreateCmd()
 		if err == nil {
 			res = plugin.Run()
@@ -147,6 +147,10 @@ func HandlePlugins(cv config.Values) interface{} {
 			}
 		}
 	} else {
+		data := []string{}
+		for name := range plugins {
+			data = append(data, name)
+		}
 		res = struct {
 			Plugins []string `json:"plugins"`
 		}{
@@ -157,18 +161,38 @@ func HandlePlugins(cv config.Values) interface{} {
 	return res
 }
 
-func getPlugins() ([]string, error) {
+func getPlugins() (map[string]Plugin, error) {
 
-	plugins := []string{}
+	plugins := make(map[string]Plugin)
 
-	files, err := ioutil.ReadDir(config.Settings.PluginDir)
+	path := config.GetPluginDirFilePath("")
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return plugins, err
 	}
 
 	for _, file := range files {
 		if !file.IsDir() {
-			plugins = append(plugins, file.Name())
+			plugins[file.Name()] = Plugin{
+				name: file.Name(),
+				path: path,
+			}
+		}
+	}
+
+	// Go through manager plugins
+	path = config.GetPluginDirFilePath("manager")
+	files, err = os.ReadDir(path)
+	if err != nil {
+		return plugins, err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			plugins[file.Name()] = Plugin{
+				name: file.Name(),
+				path: path,
+			}
 		}
 	}
 
@@ -186,4 +210,14 @@ func isValidUser() bool {
 		}
 	}
 	return true
+}
+
+func parsePluginArgs(args []string) []string {
+	if len(args) == 1 {
+		args, err := shlex.Split(args[0])
+		if err == nil {
+			return args
+		}
+	}
+	return args
 }

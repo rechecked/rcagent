@@ -15,7 +15,7 @@ Download from [GitHub releases](https://github.com/rechecked/rcagent/releases).
 
 ### For Source Install
 
-To build from source, ensure golang is installed and download the souce, then run:
+To build from source, ensure `make` and `golang` are installed and download the souce, then run:
 
 ```
 make build
