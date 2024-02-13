@@ -26,7 +26,7 @@ pluginTypes:
   .sh:
     - /bin/sh
   .py:
-    - python
+    - python3
   .pl:
     - perl
   .php:
@@ -72,7 +72,3 @@ pluginTypes:
 #    options:
 #      warning: 10
 #      critical: 20
-
-manager:
-  url: https://localhost:8080
-  apikey: 27F772B33B624CB9BB5A4ED6F331FC7B
