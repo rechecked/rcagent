@@ -1,4 +1,4 @@
-[![Go Test/Build](https://github.com/rechecked/rcagent/actions/workflows/go.yml/badge.svg)](https://github.com/rechecked/rcagent/actions/workflows/go.yml)
+[![Go Test/Build](https://github.com/rechecked/rcagent/actions/workflows/main.yml/badge.svg)](https://github.com/rechecked/rcagent/actions/workflows/main.yml)
 [![GitHub release](https://img.shields.io/github/release/rechecked/rcagent?include_prereleases=&sort=semver&color=blue)](https://github.com/rechecked/rcagent/releases/)
 [![License](https://img.shields.io/badge/License-GPLv3-blue)](https://github.com/rechecked/rcagent/blob/main/LICENSE)
 [![rcagent - Documentation](https://img.shields.io/badge/rcagent-Documentation-informational)](https://rechecked.io/docs/rcagent)
