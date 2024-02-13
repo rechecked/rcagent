@@ -4,8 +4,6 @@ name: Go Test/Build
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
 
@@ -122,7 +120,7 @@ jobs:
       - name: Archive Build
         uses: actions/upload-artifact@v3
         with:
-            name: debian11-build
+            name: debian12-build
             path: build/rcagent_*.deb
             
   build_debian11:
