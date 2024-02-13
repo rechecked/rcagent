@@ -4,8 +4,6 @@ name: Go Test/Build Dev
 on:
   push:
     branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
 
 env:
   RELEASE: ${{ github.run_id }}
