@@ -10,6 +10,10 @@ In the YAML file, `checks` is a list of checks to run. You can have as many pass
 
 This value is populated with the hostname of the system the rcagent is running on.
 
+### `$HOST_ADDRESS`
+
+The value of the host's `address` field. This variable can only be used n the plugin `args` but is available for the host and the services.
+
 ## Config Options
 
 Options with a * next to them are **required**.
@@ -17,6 +21,10 @@ Options with a * next to them are **required**.
 ### `hostname` *
 
 The hostname associated with the passive check.
+
+### `address`
+
+For hosts, you can define an address variable which sets `$HOST_ADDRESS` which can be used in plugin `args`.
 
 ### `servicename`
 

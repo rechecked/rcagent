@@ -1,8 +1,9 @@
-02/04/2024 - 1.1.0
+02/12/2024 - 1.1.0
 ==================
 - Added integration with ReChecked Manager (https://rechecked.io/rechecked-manager/)
-- Added debug logging with -D
-- Added $LOCAL_MACHINEID to local variables available
+- Added debug logging with -D option
+- Added "Address" variable for Hosts in passive check configurations
+- Added $HOST_ADDRESS variable, which to be used in plugin arguments for passive checks
 - Updated $HOST to be $LOCAL_HOSTNAME for better local variable names
 - Updated spec file to make installs on Ubuntu/Debian add the daemon to systemd
 - Fixed issue with plugin output on error not showing stdout

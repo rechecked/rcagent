@@ -379,7 +379,7 @@ func ParseConfigDir() {
 
 	// Loop over once more for services only and replace $HOST_ADDRESS for plugin args
 	for i, c := range CfgData.Checks {
-		if c.Servicename != "" && c.Options.Plugin != "" {
+		if c.Options.Plugin != "" {
 			for k, a := range c.Options.Args {
 				CfgData.Checks[i].Options.Args[k] = strings.ReplaceAll(a, "$HOST_ADDRESS", CfgData.HostAddrs[c.Hostname])
 			}
