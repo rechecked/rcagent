@@ -1,3 +1,7 @@
+02/14/2024 - 1.1.1
+==================
+- Fixed issue where empty secrets causes configs to re-apply every checkin
+
 02/12/2024 - 1.1.0
 ==================
 - Added integration with ReChecked Manager (https://rechecked.io/rechecked-manager/)

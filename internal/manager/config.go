@@ -27,17 +27,19 @@ func updateSecrets() bool {
 	f := config.GetConfigDirFilePath("manager/secrets.json")
 
 	// If there are no secrets then return now and don't add a secrets file
-	if len(json) == 0 {
+	if len(json) > 0 {
+
+		// Make sure the directory exists
+		os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
+
+		if err := os.WriteFile(f, json, 0600); err != nil {
+			config.Log.Error(err)
+			return false
+		}
+
+	} else {
+		// Remove secrets file if it should be empty
 		os.Remove(f)
-		return true
-	}
-
-	// Make sure the directory exists
-	os.MkdirAll(config.GetConfigDirFilePath("manager"), 0755)
-
-	if err := os.WriteFile(f, json, 0600); err != nil {
-		config.Log.Error(err)
-		return false
 	}
 
 	data := map[string]string{

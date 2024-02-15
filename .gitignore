@@ -1,10 +1,10 @@
 ./config.yml
 ./config.yaml
+config.yml
 build/bin/*
 site
 etc
 build/rcagent.spec
-build/package/config.yml
 site
 rcagent.pem
 rcagent.key
