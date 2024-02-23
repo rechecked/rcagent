@@ -145,7 +145,7 @@ Parameter | Default | Description
 	
 	```
 	{
-		"version": "1.1.1"
+		"version": "1.1.2"
 	}
 	```
 
@@ -154,7 +154,7 @@ Parameter | Default | Description
 	```
 	{
 		"exitcode": 0,
-		"output": "OK - rcagent version is 1.1.1",
+		"output": "OK - rcagent version is 1.1.2",
 		"perfdata": "",
 		"longoutput": ""
 	}
@@ -163,5 +163,5 @@ Parameter | Default | Description
 === "Plugin"
 
 	```
-	OK - rcagent version is 1.1.1
+	OK - rcagent version is 1.1.2
 	```
