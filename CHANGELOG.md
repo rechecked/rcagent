@@ -1,3 +1,7 @@
+02/22/2025 - 1.1.2
+==================
+- Fixed issue with creating new clients instead of reusing http client
+
 02/14/2024 - 1.1.1
 ==================
 - Fixed issue where empty secrets causes configs to re-apply every checkin
