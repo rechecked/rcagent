@@ -45,6 +45,9 @@ type ConfigsData struct {
 	Plugins map[string]string
 }
 
+var client http.Client
+var dlClient http.Client
+
 // Set up the manager connection
 func Run(restart chan<- struct{}) {
 
@@ -91,6 +94,8 @@ func Sync(s, c bool) bool {
 // Do inital registration when the agent starts up... send basic data and if we
 // need to get a certificate we do that now.
 func Register() {
+
+	clientSetup()
 
 	// Skip registration if we aren't using the manager
 	if !config.UsingManager() {
@@ -174,6 +179,26 @@ func checkin() {
 	}
 }
 
+func clientSetup() {
+
+	// Set up HTTP client for downloads
+	dlClient = http.Client{
+		CheckRedirect: func(r *http.Request, via []*http.Request) error {
+			r.URL.Opaque = r.URL.Path
+			return nil
+		},
+	}
+
+	// Set up an HTTP client for manager, ignore invalid certs if we have the config option set
+	if config.Settings.Manager.IgnoreCert {
+		tr := http.DefaultTransport.(*http.Transport).Clone()
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		client = http.Client{Transport: tr}
+	} else {
+		client = http.Client{}
+	}
+}
+
 // Send a POST request
 func sendPost(path string, data map[string]string) ([]byte, error) {
 
@@ -220,18 +245,11 @@ func downloadFile(name string, url string) error {
 	}
 	defer file.Close()
 
-	client := http.Client{
-		CheckRedirect: func(r *http.Request, via []*http.Request) error {
-			r.URL.Opaque = r.URL.Path
-			return nil
-		},
-	}
-
 	if config.DebugMode {
 		config.LogDebugf("Downloading: %s", url)
 	}
 
-	resp, err := client.Get(url)
+	resp, err := dlClient.Get(url)
 	if err != nil {
 		return err
 	}
@@ -245,12 +263,6 @@ func getRequest(req *http.Request) ([]byte, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("X-API-Key", config.Settings.Manager.APIKey)
-
-	// Set up an HTTP client, ignore invalid certs if we have the config option set
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Settings.Manager.IgnoreCert},
-	}
-	client := &http.Client{Transport: tr}
 
 	resp, err := client.Do(req)
 	if err != nil {
