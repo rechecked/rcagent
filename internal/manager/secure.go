@@ -22,7 +22,7 @@ type Cert struct {
 func RequestCert(certFn, keyFn string) error {
 
 	// Request a new cert
-	i := getHostInfo()
+	i := config.GetHostInfo()
 	data := map[string]string{
 		"machineId": i.MachineId,
 		"hostname":  i.Hostname,

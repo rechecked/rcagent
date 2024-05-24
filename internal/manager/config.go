@@ -16,7 +16,7 @@ var sanRegex = regexp.MustCompile(`[^a-z0-9_]+`)
 func updateSecrets() bool {
 
 	params := url.Values{}
-	params.Add("machineId", getHostInfo().MachineId)
+	params.Add("machineId", config.GetMachineId())
 
 	json, err := sendGet("agents/update/secrets", params)
 	if err != nil {
@@ -43,7 +43,7 @@ func updateSecrets() bool {
 	}
 
 	data := map[string]string{
-		"machineId": getHostInfo().MachineId,
+		"machineId": config.GetMachineId(),
 	}
 
 	_, err = sendPost("agents/update/secrets", data)
@@ -58,7 +58,7 @@ func updateSecrets() bool {
 func updateConfigs() bool {
 
 	params := url.Values{}
-	params.Add("machineId", getHostInfo().MachineId)
+	params.Add("machineId", config.GetMachineId())
 
 	rawJSON, err := sendGet("agents/update/configs", params)
 	if err != nil {
@@ -105,7 +105,7 @@ func updateConfigs() bool {
 	}
 
 	data := map[string]string{
-		"machineId": getHostInfo().MachineId,
+		"machineId": config.GetMachineId(),
 	}
 
 	_, err = sendPost("agents/update/configs", data)

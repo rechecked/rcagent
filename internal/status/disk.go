@@ -89,7 +89,7 @@ func HandleDisks(cv config.Values) interface{} {
 }
 
 func HandleInodes(cv config.Values) interface{} {
-	disks, _ := getDisksInodes(cv.GetUnits())
+	disks, _ := getDisksInodes()
 
 	// Find the specific disk if we are passing a path
 	if cv.Path != "" {
@@ -105,10 +105,7 @@ func HandleInodes(cv config.Values) interface{} {
 
 func getDisks(units string) ([]Disk, error) {
 	var disks []Disk
-	d, err := disk.Partitions(true)
-	if err != nil {
-		return disks, err
-	}
+	d, _ := disk.Partitions(true)
 	for _, i := range d {
 		if !config.Contains(config.Settings.ExcludeFsTypes, i.Fstype) {
 			u, err := disk.Usage(i.Mountpoint)
@@ -137,7 +134,7 @@ func getDisks(units string) ([]Disk, error) {
 	return disks, nil
 }
 
-func getDisksInodes(units string) ([]Inodes, error) {
+func getDisksInodes() ([]Inodes, error) {
 	var inodes []Inodes
 	d, err := disk.Partitions(true)
 	if err != nil {

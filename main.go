@@ -86,7 +86,7 @@ func main() {
 
 	// Display the machine id (useful for debugging/dev/testing)
 	if *machineId {
-		fmt.Printf("Machine ID: %s\n", manager.GetMachineId())
+		fmt.Printf("Machine ID: %s\n", config.GetMachineId())
 		os.Exit(0)
 	}
 

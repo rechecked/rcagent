@@ -18,15 +18,11 @@ import (
 	"github.com/rechecked/rcagent/internal/status"
 )
 
-type Endpoint func(cv config.Values) interface{}
-
 type serverError struct {
 	Message   string   `json:"message"`
 	Status    string   `json:"status"`
 	Endpoints []string `json:"endpoints,omitempty"`
 }
-
-var endpoints = make(map[string]Endpoint)
 
 func Setup() {
 	config.LogDebug("Setting up endpoints")
@@ -64,7 +60,7 @@ func Run(restart chan struct{}) {
 	}
 
 	config.Log.Infof("Starting server: %s (%s)", hostname, host)
-	go serve(srv, mux)
+	go serve(srv)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -83,7 +79,7 @@ func Run(restart chan struct{}) {
 	}
 }
 
-func serve(srv *http.Server, mux *http.ServeMux) {
+func serve(srv *http.Server) {
 	var err error
 	if config.Settings.TLS.Cert != "" && config.Settings.TLS.Key != "" {
 		err = srv.ListenAndServeTLS(config.Settings.TLS.Cert, config.Settings.TLS.Key)
@@ -124,7 +120,7 @@ func setupEndpoints() {
 }
 
 func GetDataFromEndpoint(path string, values config.Values) (interface{}, error) {
-	endpoint := endpoints[path]
+	endpoint := config.Endpoints[path]
 	if endpoint != nil {
 
 		// Get the data back from the endpoint
@@ -150,12 +146,12 @@ func GetDataFromEndpoint(path string, values config.Values) (interface{}, error)
 	return nil, errors.New("GetDataFromEndpoint: Endpoint does not exist")
 }
 
-func endpointFunc(path string, endpoint Endpoint) {
-	endpoints[path] = endpoint
+func endpointFunc(path string, endpoint config.Endpoint) {
+	config.Endpoints[path] = endpoint
 }
 
 func handleMain(w http.ResponseWriter, r *http.Request) {
-	errorHandler(w, r, http.StatusNotFound)
+	errorHandler(w, http.StatusNotFound)
 }
 
 func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +168,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	values := config.ParseValues(r)
 
 	// Validate token
-	if err = validateToken(w, r); err != nil {
+	if err = validateToken(r); err != nil {
 		error := serverError{
 			Message: "Could not authenticate: invalid token given",
 			Status:  "error",
@@ -191,7 +187,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 		// of accessible endpoints to the output
 		var e []string
 		prefix, _, _ := strings.Cut(fullpath, "/")
-		for ep := range endpoints {
+		for ep := range config.Endpoints {
 			if strings.Contains(ep, prefix) {
 				e = append(e, ep)
 			}
@@ -213,7 +209,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
+func errorHandler(w http.ResponseWriter, status int) {
 	setupHeader(&w)
 	w.WriteHeader(status)
 	if status == http.StatusNotFound {
@@ -230,7 +226,7 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int) {
 	}
 }
 
-func validateToken(w http.ResponseWriter, r *http.Request) error {
+func validateToken(r *http.Request) error {
 	token := []byte(r.FormValue("token"))
 	configToken := []byte(config.Settings.Token)
 	if subtle.ConstantTimeCompare(token, configToken) == 1 {

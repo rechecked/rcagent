@@ -6,6 +6,7 @@ require (
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/go-cmd/cmd v1.4.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/gorilla/websocket v1.5.1
 	github.com/iamacarpet/go-win64api v0.0.0-20230324134531-ef6dbdd6db97
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/kardianos/service v1.2.2
@@ -32,5 +33,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	gopkg.in/toast.v1 v1.0.0-20180812000517-0a84660828b2 // indirect
 )

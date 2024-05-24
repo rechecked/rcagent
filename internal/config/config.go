@@ -60,18 +60,18 @@ type ManagerCfg struct {
 }
 
 type Values struct {
-	Check    bool
-	Pretty   bool
-	Plugin   string
-	Name     string
-	Path     string
-	Args     []string
-	Against  string
-	Expected string
-	Warning  string
-	Critical string
-	Delta    int
-	Units    string
+	Check    bool     `json:"check"`
+	Pretty   bool     `json:"pretty"`
+	Plugin   string   `json:"plugin"`
+	Name     string   `json:"name"`
+	Path     string   `json:"path"`
+	Args     []string `json:"args"`
+	Against  string   `json:"against"`
+	Expected string   `json:"expected"`
+	Warning  string   `json:"warning"`
+	Critical string   `json:"critical"`
+	Delta    int      `json:"delta"`
+	Units    string   `json:"units"`
 }
 
 type Data struct {

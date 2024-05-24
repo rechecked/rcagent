@@ -11,23 +11,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/denisbrodbeck/machineid"
-	"github.com/shirou/gopsutil/v3/host"
-
 	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/connect"
 )
 
 const (
 	DEFAULT_ACTIVIATION_WAIT_TIME   = 60  // 1 Minute
 	DEFAULT_LIMIT_REACHED_WAIT_TIME = 600 // 10 Minutes
 )
-
-type HostInfo struct {
-	Hostname  string
-	MachineId string
-	OS        string
-	Platform  string
-}
 
 type RegisterStatus struct {
 	Activated    bool `json:"activated"`
@@ -37,6 +28,7 @@ type RegisterStatus struct {
 type CheckInStatus struct {
 	NeedsConfigUpdate  bool `json:"needsConfigUpdate"`
 	NeedsSecretsUpdate bool `json:"needsSecretsUpdate"`
+	NeedsToConnect     bool `json:"needsToConnect"`
 }
 
 type ConfigsData struct {
@@ -107,7 +99,7 @@ func Register() {
 		config.LogDebugf("Registering with RCM (%s)", url)
 	}
 
-	i := getHostInfo()
+	i := config.GetHostInfo()
 	data := map[string]string{
 		"hostname":  i.Hostname,
 		"machineId": i.MachineId,
@@ -148,16 +140,12 @@ func Register() {
 	}
 }
 
-func GetMachineId() string {
-	return getHostInfo().MachineId
-}
-
 // Send some basic data to the manager to "check in" with it, indicating
 // that the agent is running, accessible, and provides feedback on current status
 func checkin() {
 
 	data := map[string]string{
-		"machineId": getHostInfo().MachineId,
+		"machineId": config.GetMachineId(),
 	}
 
 	b, err := sendPost("agents/checkin", data)
@@ -171,6 +159,10 @@ func checkin() {
 	if err != nil {
 		config.Log.Error(err)
 		return
+	}
+
+	if c.NeedsToConnect {
+		go connect.WSHandler()
 	}
 
 	// Sync certain things if they need to be synced
@@ -303,22 +295,6 @@ func getManagerUrl(path string, params url.Values) (string, error) {
 	}
 
 	return url.String(), nil
-}
-
-func getHostInfo() HostInfo {
-
-	hostname, _ := os.Hostname()
-	machineId, _ := machineid.ProtectedID("rcagent")
-	host, _ := host.Info()
-
-	i := HostInfo{
-		Hostname:  hostname,
-		MachineId: machineId,
-		OS:        host.OS,
-		Platform:  host.Platform,
-	}
-
-	return i
 }
 
 func getOutboundIP() string {
