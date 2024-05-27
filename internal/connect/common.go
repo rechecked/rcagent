@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -128,7 +129,17 @@ func (c *client) writeJSON(v interface{}) {
 
 func callEndpoint(r Request) (interface{}, error) {
 
-	endpoint := config.Endpoints[r.Path]
+	if r.Path == "" {
+		return nil, errors.New("callEndpoint: no path given")
+	}
+
+	// Break string at main path (such as status or config api)
+	// r.Path = status/memory/virtual
+	// path[0] = status
+	// path[1] = memory/virtual
+	path := strings.SplitN(r.Path, "/", 2)
+
+	endpoint := config.Endpoints[path[1]]
 	if endpoint == nil {
 		return nil, errors.New("callEndpoint: endpoint not found")
 	}
