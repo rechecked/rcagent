@@ -5,10 +5,15 @@ import (
 	"time"
 
 	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/endpoints"
 	"github.com/rechecked/rcagent/internal/manager"
-	"github.com/rechecked/rcagent/internal/server"
 	"github.com/rechecked/rcagent/internal/status"
 )
+
+type Sender interface {
+	SetConn() error
+	TestConn() error
+}
 
 // Set up passive related loop
 func Run() {
@@ -57,7 +62,7 @@ func runChecks() {
 		config.CfgData.Checks[i].NextRun = now.Add(dur)
 
 		// Run the check and get the value data back, try to send it off if we can
-		data, err := server.GetDataFromEndpoint(check.Endpoint, check.Options)
+		data, err := endpoints.GetDataFromEndpoint(check.Endpoint, check.Options)
 		if err != nil {
 			config.Log.Infof("Error: runChecks: %s\n", err)
 		}

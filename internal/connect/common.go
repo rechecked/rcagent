@@ -9,11 +9,13 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/endpoints"
 )
 
 type client struct {
@@ -22,9 +24,9 @@ type client struct {
 }
 
 type Request struct {
-	Id     int64         `json:"id"`
-	Path   string        `json:"path"`
-	Values config.Values `json:"values"`
+	Id    int64      `json:"id"`
+	Path  string     `json:"path"`
+	Query url.Values `json:"query"`
 }
 
 type Response struct {
@@ -138,12 +140,41 @@ func callEndpoint(r Request) (interface{}, error) {
 	// path[0] = status
 	// path[1] = memory/virtual
 	path := strings.SplitN(r.Path, "/", 2)
-
-	endpoint := config.Endpoints[path[1]]
-	if endpoint == nil {
-		return nil, errors.New("callEndpoint: endpoint not found")
+	if len(path) < 2 {
+		return nil, errors.New("callEndpoint: invalid path given")
 	}
 
-	data := endpoint(r.Values)
-	return data, nil
+	values := parseConfigValues(r.Query)
+	data, err := endpoints.GetDataFromEndpoint(path[1], values)
+	return data, err
+}
+
+func parseConfigValues(v url.Values) config.Values {
+
+	pretty, _ := strconv.ParseBool(v.Get("pretty"))
+	check, _ := strconv.ParseBool(v.Get("check"))
+	delta, _ := strconv.Atoi(v.Get("delta"))
+
+	var c = config.Values{
+		Check:    check,
+		Pretty:   pretty,
+		Plugin:   v.Get("plugin"),
+		Name:     v.Get("name"),
+		Path:     v.Get("path"),
+		Args:     v["arg"],
+		Against:  v.Get("against"),
+		Expected: v.Get("expected"),
+		Warning:  v.Get("warning"),
+		Critical: v.Get("critical"),
+		Delta:    delta,
+	}
+
+	// Override units (empty string is allowed to clear old value)
+	units := v.Get("units")
+	validUnit := config.Contains(config.AllowedUnits, units)
+	if validUnit || units == "" {
+		c.Units = units
+	}
+
+	return c
 }
