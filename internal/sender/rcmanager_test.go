@@ -7,9 +7,9 @@ import (
 func TestRCManagerConnect(t *testing.T) {
 
 	s := new(RCManagerServer)
-	err := s.SetConn("testfail/nrdp", "")
+	err := s.SetConn("testfail/rcmanager", "")
 	if err == nil {
-		t.Log("NRDPServer is not properly validating host/token")
+		t.Log("RCManager is not properly validating host/token")
 		t.Fail()
 	}
 
