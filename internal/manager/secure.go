@@ -29,7 +29,7 @@ func RequestCert(certFn, keyFn string) error {
 		"address":   getOutboundIP(),
 	}
 
-	resp, err := sendPost("agents/certificate", data)
+	resp, err := SendPost("agents/certificate", data)
 	if err != nil {
 		return err
 	}

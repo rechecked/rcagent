@@ -43,6 +43,7 @@ type SenderCfg struct {
 }
 
 type CheckCfg struct {
+	CheckId     int64  `yaml:"checkId"`
 	Hostname    string `yaml:"hostname"`
 	Address     string `yaml:"address"`
 	Servicename string `yaml:"servicename"`

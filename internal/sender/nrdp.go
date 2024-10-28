@@ -8,13 +8,16 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/status"
 	"github.com/tidwall/gjson"
 )
 
-type NRDPServer struct {
-	Name  string
-	Url   string
-	Token string
+type NRDPSender struct {
+	Name   string
+	Url    string
+	Token  string
+	Checks []NRDPCheckResult
 }
 
 type NRDPResponse struct {
@@ -35,8 +38,8 @@ type NRDPCheckResult struct {
 	Output      string         `json:"output"`
 }
 
-// Create a new NRDPServer and verify the url
-func (n *NRDPServer) SetConn(u, token string) error {
+// Create a new NRDPSender and verify the url
+func (n *NRDPSender) SetConn(u, token string) error {
 
 	if _, err := url.ParseRequestURI(u); err != nil {
 		return err
@@ -47,15 +50,55 @@ func (n *NRDPServer) SetConn(u, token string) error {
 	return nil
 }
 
+// Formats the check responses for NRDP and stores them for sending
+func (n *NRDPSender) Format(cfg config.CheckCfg, chk status.CheckResult) {
+
+	output := chk.Output
+	if chk.LongOutput != "" {
+		output = fmt.Sprintf("%s\n%s", output, chk.LongOutput)
+	}
+	if chk.Perfdata != "" {
+		output = fmt.Sprintf("%s | %s", output, chk.Perfdata)
+	}
+
+	var checks []NRDPCheckResult
+	if cfg.Servicename != "" {
+		checks = []NRDPCheckResult{
+			{
+				Checkresult: NRDPObjectType{
+					Type: "service",
+				},
+				Hostname:    cfg.Hostname,
+				Servicename: cfg.Servicename,
+				State:       chk.Exitcode,
+				Output:      output,
+			},
+		}
+	} else {
+		checks = []NRDPCheckResult{
+			{
+				Checkresult: NRDPObjectType{
+					Type: "host",
+				},
+				Hostname: cfg.Hostname,
+				State:    chk.Exitcode,
+				Output:   output,
+			},
+		}
+	}
+
+	n.Checks = checks
+}
+
 // Send a request to the NRDP server with any check data we want to pass
-func (n *NRDPServer) Send(checks []NRDPCheckResult) (NRDPResponse, error) {
+func (n *NRDPSender) Send() error {
 
 	// Create string of json for NRDP
 	res := "[]"
-	if len(checks) > 0 {
-		results, err := json.Marshal(checks)
+	if len(n.Checks) > 0 {
+		results, err := json.Marshal(n.Checks)
 		if err != nil {
-			return NRDPResponse{}, err
+			return err
 		}
 		res = string(results)
 	}
@@ -68,15 +111,17 @@ func (n *NRDPServer) Send(checks []NRDPCheckResult) (NRDPResponse, error) {
 
 	resp, err := sendToNRDP(n.Url, data)
 	if err != nil {
-		return NRDPResponse{}, err
+		return err
 	}
 
-	return resp, nil
+	config.LogDebugf("Sender NRDP repsonse: %s", resp.String())
+
+	return nil
 }
 
 // Check if NRDP server and creds are valid and return and error
 // if they are not...
-func (n *NRDPServer) TestConn() error {
+func (n *NRDPSender) TestConn() error {
 
 	data := url.Values{
 		"cmd":   {"submitcheck"},
@@ -104,7 +149,7 @@ func (n *NRDPServer) TestConn() error {
 	return errors.New("could not validate message")
 }
 
-func (n *NRDPServer) String() string {
+func (n *NRDPSender) String() string {
 	return n.Url
 }
 

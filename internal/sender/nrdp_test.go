@@ -1,17 +1,21 @@
 package sender
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
+	"github.com/rechecked/rcagent/internal/config"
+	"github.com/rechecked/rcagent/internal/status"
 )
 
 func TestNRDPBadCreate(t *testing.T) {
 
-	n := new(NRDPServer)
+	n := NRDPSender{}
 	err := n.SetConn("testfail/nrdp", "")
 	if err == nil {
-		t.Log("NRDPServer is not properly validating host/token")
+		t.Log("NRDPSender is not properly validating host/token")
 		t.Fail()
 	}
 
@@ -19,7 +23,7 @@ func TestNRDPBadCreate(t *testing.T) {
 
 func TestNRDPConnect(t *testing.T) {
 
-	n := new(NRDPServer)
+	n := NRDPSender{}
 	err := n.SetConn("http://192.168.1.100/nrdp/", "TestToken")
 	if err != nil {
 		t.Log(err)
@@ -58,10 +62,77 @@ func TestNRDPConnect(t *testing.T) {
 
 }
 
+func TestNRDPFormatCheckResults(t *testing.T) {
+
+	hostCfg := config.CheckCfg{
+		Hostname: "Test Host",
+	}
+	hostStatus := status.CheckResult{
+		Exitcode:   0,
+		Output:     "Test output",
+		Perfdata:   "x=10",
+		LongOutput: "extra data",
+	}
+	host := []NRDPCheckResult{
+		{
+			Checkresult: NRDPObjectType{
+				Type: "host",
+			},
+			Hostname: "Test Host",
+			State:    0,
+			Output:   "Test output\nextra data | x=10",
+		},
+	}
+
+	n := NRDPSender{}
+	n.Format(hostCfg, hostStatus)
+
+	if !reflect.DeepEqual(n.Checks, host) {
+		t.Fail()
+	}
+
+	srvCfg := config.CheckCfg{
+		Hostname:    "Test Host",
+		Servicename: "Test Service",
+	}
+	srvStatus := status.CheckResult{
+		Exitcode: 0,
+		Output:   "Test Output",
+	}
+	srv := []NRDPCheckResult{
+		{
+			Checkresult: NRDPObjectType{
+				Type: "service",
+			},
+			Hostname:    "Test Host",
+			Servicename: "Test Service",
+			State:       0,
+			Output:      "Test output",
+		},
+	}
+
+	n = NRDPSender{}
+	n.Format(srvCfg, srvStatus)
+
+	if !reflect.DeepEqual(n.Checks, srv) {
+		t.Fail()
+	}
+
+	fmt.Println(n.Checks)
+
+}
+
 func TestNRDPSendCheckResults(t *testing.T) {
 
 	mockResponse := `{"result":{"status":0,"message":"OK","meta":{"output":"2 checks processed"}}}`
-	mockChecks := []NRDPCheckResult{
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("POST", "http://192.168.1.100/nrdp/",
+		httpmock.NewStringResponder(200, mockResponse))
+
+	n := NRDPSender{}
+	n.Checks = []NRDPCheckResult{
 		{
 			Checkresult: NRDPObjectType{
 				Type: "host",
@@ -81,18 +152,12 @@ func TestNRDPSendCheckResults(t *testing.T) {
 		},
 	}
 
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-	httpmock.RegisterResponder("POST", "http://192.168.1.100/nrdp/",
-		httpmock.NewStringResponder(200, mockResponse))
-
-	n := new(NRDPServer)
 	if err := n.SetConn("http://192.168.1.100/nrdp/", "TestToken"); err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 
-	resp, err := n.Send(mockChecks)
+	err := n.Send()
 	if err != nil {
 		t.Log(err)
 		t.Fail()
@@ -101,12 +166,6 @@ func TestNRDPSendCheckResults(t *testing.T) {
 	// Test sender string
 	if n.String() != "http://192.168.1.100/nrdp/" {
 		t.Log("String mismatch: ", n.String())
-		t.Fail()
-	}
-
-	// Test response string
-	if resp.String() != "Status: 0 | Message: OK | Meta Output: 2 checks processed" {
-		t.Log("String mismatch: ", resp.String())
 		t.Fail()
 	}
 

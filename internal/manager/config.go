@@ -18,7 +18,7 @@ func updateSecrets() bool {
 	params := url.Values{}
 	params.Add("machineId", config.GetMachineId())
 
-	json, err := sendGet("agents/update/secrets", params)
+	json, err := SendGet("agents/update/secrets", params)
 	if err != nil {
 		config.Log.Error(err)
 		return false
@@ -46,7 +46,7 @@ func updateSecrets() bool {
 		"machineId": config.GetMachineId(),
 	}
 
-	_, err = sendPost("agents/update/secrets", data)
+	_, err = SendPost("agents/update/secrets", data)
 	if err != nil {
 		config.Log.Error(err)
 		return false
@@ -60,7 +60,7 @@ func updateConfigs() bool {
 	params := url.Values{}
 	params.Add("machineId", config.GetMachineId())
 
-	rawJSON, err := sendGet("agents/update/configs", params)
+	rawJSON, err := SendGet("agents/update/configs", params)
 	if err != nil {
 		config.Log.Error(err)
 		return false
@@ -108,7 +108,7 @@ func updateConfigs() bool {
 		"machineId": config.GetMachineId(),
 	}
 
-	_, err = sendPost("agents/update/configs", data)
+	_, err = SendPost("agents/update/configs", data)
 	if err != nil {
 		config.Log.Error(err)
 		return false

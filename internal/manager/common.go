@@ -110,7 +110,7 @@ func Register() {
 		"token":     config.Settings.Token,
 	}
 
-	resp, err := sendPost("agents/register", data)
+	resp, err := SendPost("agents/register", data)
 	if err != nil {
 		config.Log.Error(err)
 	}
@@ -148,7 +148,7 @@ func checkin() {
 		"machineId": config.GetMachineId(),
 	}
 
-	b, err := sendPost("agents/checkin", data)
+	b, err := SendPost("agents/checkin", data)
 	if err != nil {
 		config.Log.Error(err)
 		return
@@ -192,7 +192,7 @@ func clientSetup() {
 }
 
 // Send a POST request
-func sendPost(path string, data map[string]string) ([]byte, error) {
+func SendPost(path string, data interface{}) ([]byte, error) {
 
 	cfgUrl, err := getManagerUrl(path, nil)
 	if err != nil {
@@ -207,11 +207,11 @@ func sendPost(path string, data map[string]string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return getRequest(req)
+	return request(req)
 }
 
 // Send a GET request
-func sendGet(path string, params url.Values) ([]byte, error) {
+func SendGet(path string, params url.Values) ([]byte, error) {
 
 	cfgUrl, err := getManagerUrl(path, params)
 	if err != nil {
@@ -225,7 +225,7 @@ func sendGet(path string, params url.Values) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return getRequest(req)
+	return request(req)
 }
 
 func downloadFile(name string, url string) error {
@@ -251,7 +251,7 @@ func downloadFile(name string, url string) error {
 	return err
 }
 
-func getRequest(req *http.Request) ([]byte, error) {
+func request(req *http.Request) ([]byte, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("X-API-Key", config.Settings.Manager.APIKey)

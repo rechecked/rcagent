@@ -1,7 +1,6 @@
 package sender
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/rechecked/rcagent/internal/config"
@@ -11,8 +10,10 @@ import (
 )
 
 type Sender interface {
-	SetConn() error
+	SetConn(string, string) error
 	TestConn() error
+	Format(config.CheckCfg, status.CheckResult)
+	Send() error
 }
 
 // Set up passive related loop
@@ -104,52 +105,32 @@ func sendToSenders(chk status.CheckResult, cfg config.CheckCfg) {
 	for _, sender := range senders {
 		// We only have NRDP for now but more later?
 		if sender.Type == "nrdp" {
-			s := new(NRDPServer)
-			err := s.SetConn(sender.Url, sender.Token)
-			if err != nil {
-				config.Log.Errorf("Error: sendToSenders: %s", err)
-			}
-
-			// Set output
-			output := chk.Output
-			if chk.LongOutput != "" {
-				output = fmt.Sprintf("%s\n%s", output, chk.LongOutput)
-			}
-			if chk.Perfdata != "" {
-				output = fmt.Sprintf("%s | %s", output, chk.Perfdata)
-			}
-
-			// Create the nrdp result
-			var checks []NRDPCheckResult
-			if cfg.Servicename != "" {
-				checks = []NRDPCheckResult{
-					{
-						Checkresult: NRDPObjectType{
-							Type: "service",
-						},
-						Hostname:    cfg.Hostname,
-						Servicename: cfg.Servicename,
-						State:       chk.Exitcode,
-						Output:      output,
-					},
-				}
-			} else {
-				checks = []NRDPCheckResult{
-					{
-						Checkresult: NRDPObjectType{
-							Type: "host",
-						},
-						Hostname: cfg.Hostname,
-						State:    chk.Exitcode,
-						Output:   output,
-					},
-				}
-			}
-			resp, err := s.Send(checks)
-			if err != nil {
-				config.Log.Errorf("Error: sendToSenders: %s", err)
-			}
-			config.LogDebugf("Sender NRDP repsonse: %s", resp.String())
+			send(new(NRDPSender), sender, chk, cfg)
 		}
 	}
+
+	// Handle for rcm if it's enabled and checks are enabled
+	if config.UsingManager() {
+		scfg := config.SenderCfg{
+			Url:   config.Settings.Manager.Url,
+			Token: config.Settings.Manager.APIKey,
+		}
+		send(new(RCManagerSender), scfg, chk, cfg)
+	}
+}
+
+func send(s Sender, sender config.SenderCfg, chk status.CheckResult, cfg config.CheckCfg) {
+	err := s.SetConn(sender.Url, sender.Token)
+	if err != nil {
+		config.Log.Errorf("Error: send: %s", err)
+	}
+
+	// Format the data for sending
+	s.Format(cfg, chk)
+
+	err = s.Send()
+	if err != nil {
+		config.Log.Errorf("Error: send: %s", err)
+	}
+
 }
