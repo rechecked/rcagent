@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/net"
+	"github.com/shirou/gopsutil/v4/net"
 )
 
 var ifmux = &sync.Mutex{}
@@ -101,6 +101,11 @@ func HandleNetworks(cv config.Values) interface{} {
 			}
 		}
 
+		// Verify we have a valid interface
+		if itr.Name == "" {
+			return fmt.Errorf("Interface \"%s\" is not available", cv.Name)
+		}
+
 		// If delta is passed, get the old value and adjust it
 		// based on amount of seconds passed
 		if cv.Delta > 0 || cv.Check {
@@ -155,8 +160,8 @@ func getNetworkIfs() ([]Interface, error) {
 		return ifList, err
 	}
 
+	// Append the counter data onto each of the interfaces
 	for _, i := range ifs {
-		// Append the counter data onto each of the interfaces
 		for _, x := range ifsCounters {
 			if x.Name == i.Name {
 				ifList = append(ifList, Interface{

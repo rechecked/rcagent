@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/rechecked/rcagent/internal/config"
 	"github.com/rechecked/rcagent/internal/status"
@@ -28,7 +29,23 @@ func GetDataFromEndpoint(path string, values config.Values) (interface{}, error)
 			return check, nil
 		}
 
-		// If we aren't doing a check, convert endpoint return to JSON
+		// If we have an error we need to format it for output
+		if err, ok := e.(error); ok {
+			if values.Check {
+				e = status.CheckResult{
+					Output:   fmt.Sprintf("Error: %s", err.Error()),
+					Exitcode: status.STATUS_ERROR,
+				}
+			} else {
+				e = struct {
+					Error string `json:"error"`
+				}{
+					Error: err.Error(),
+				}
+			}
+		}
+
+		// If we aren't doing a check, just return value
 		return e, nil
 	}
 	return nil, errors.New("GetDataFromEndpoint: Endpoint does not exist")

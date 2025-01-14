@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/load"
+	"github.com/shirou/gopsutil/v4/load"
 )
 
 type Load struct {

@@ -34,6 +34,7 @@ func HandleServices(cv config.Values) interface{} {
 				return s
 			}
 		}
+		return fmt.Errorf("Service \"%s\" was not found", cv.Against)
 	}
 
 	return svcs

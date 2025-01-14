@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v4/disk"
 )
 
 type Disk struct {
@@ -83,6 +83,7 @@ func HandleDisks(cv config.Values) interface{} {
 				return disk
 			}
 		}
+		return fmt.Errorf("Disk \"%s\" was not found", cv.Path)
 	}
 
 	return disks

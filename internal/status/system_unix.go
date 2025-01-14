@@ -4,7 +4,7 @@
 package status
 
 import (
-	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v4/host"
 
 	"github.com/rechecked/rcagent/internal/config"
 )

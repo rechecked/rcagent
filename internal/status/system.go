@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v4/host"
+	"github.com/shirou/gopsutil/v4/sensors"
 )
 
 type Users struct {
@@ -52,7 +53,7 @@ func HandleSystem(cv config.Values) interface{} {
 }
 
 func HandleTemps(cv config.Values) interface{} {
-	temps, err := host.SensorsTemperatures()
+	temps, err := sensors.SensorsTemperatures()
 	if err != nil {
 		return err
 	}

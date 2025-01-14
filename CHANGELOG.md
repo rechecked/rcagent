@@ -1,4 +1,11 @@
-02/22/2025 - 1.1.2
+12/23/2024 - 1.2.0
+==================
+- Added websocket integration for ReChecked Manger
+- Added new check sender for ReChecked Manager
+- Added error handling to status endpoints and UNKNOWN check result on errors
+- Fixed issue in network endpoint showing bad data if network interface name was invalid
+
+02/22/2024 - 1.1.2
 ==================
 - Fixed issue with creating new clients instead of reusing http client
 

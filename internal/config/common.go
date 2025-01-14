@@ -6,7 +6,7 @@ import (
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/kardianos/service"
-	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
 type HostInfo struct {

@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+const (
+	STATUS_ERROR = 3
+)
+
 type Checkable interface {
 	CheckValue() float64
 	String() string
@@ -21,13 +25,6 @@ type CheckableAgainst interface {
 type CheckableExtra interface {
 	LongOutput() string
 }
-
-/*
-type apiError struct {
-	Message string `json:"message"`
-	Status  string `json:"status"`
-}
-*/
 
 type CheckResult struct {
 	Exitcode   int    `json:"exitcode"`

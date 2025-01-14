@@ -129,11 +129,7 @@ func HandlePlugins(cv config.Values) interface{} {
 	if cv.Plugin != "" {
 		plugin, ok := plugins[cv.Plugin]
 		if !ok {
-			res = PluginResults{
-				Output:   "Plugin does not exist",
-				ExitCode: 1,
-			}
-			return res
+			return fmt.Errorf("Plugin \"%s\" does not exist", cv.Plugin)
 		}
 
 		plugin.args = parsePluginArgs(cv.Args)
@@ -141,10 +137,7 @@ func HandlePlugins(cv config.Values) interface{} {
 		if err == nil {
 			res = plugin.Run()
 		} else {
-			res = PluginResults{
-				Output:   "Plugin does not exist",
-				ExitCode: 1,
-			}
+			res = fmt.Errorf("Plugin \"%s\" does not exist", cv.Plugin)
 		}
 	} else {
 		data := []string{}

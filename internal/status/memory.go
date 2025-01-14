@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/rechecked/rcagent/internal/config"
-	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 type MemoryStatus struct {

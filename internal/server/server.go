@@ -20,8 +20,7 @@ import (
 )
 
 type serverError struct {
-	Message   string   `json:"message"`
-	Status    string   `json:"status"`
+	Error     string   `json:"error"`
 	Endpoints []string `json:"endpoints,omitempty"`
 }
 
@@ -144,8 +143,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 	// Validate token
 	if err = validateToken(r); err != nil {
 		error := serverError{
-			Message: "Could not authenticate: invalid token given",
-			Status:  "error",
+			Error: "Could not authenticate: invalid token given",
 		}
 		jsonData, _ = ConvertToJson(error, values.Pretty)
 		w.Write(jsonData)
@@ -170,8 +168,7 @@ func handleStatusAPI(w http.ResponseWriter, r *http.Request) {
 
 		// Endpoint doesn't exist, give a generic invalid path error
 		data = serverError{
-			Message:   "Invalid API endpoint path given",
-			Status:    "error",
+			Error:     "Invalid API endpoint path given",
 			Endpoints: e,
 		}
 	}
@@ -189,8 +186,7 @@ func errorHandler(w http.ResponseWriter, status int) {
 	if status == http.StatusNotFound {
 		// Custom 404 style error
 		error := serverError{
-			Message: "Could not get data: invalid URL path",
-			Status:  "error",
+			Error: "Could not get data: invalid URL path",
 		}
 		jsonData, err := json.Marshal(error)
 		if err != nil {

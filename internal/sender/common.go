@@ -77,7 +77,7 @@ func runChecks() {
 			}
 		}
 
-		// For normal check results
+		// Send check results
 		chk, ok := data.(status.CheckResult)
 		if ok {
 			go sendToSenders(chk, check)
