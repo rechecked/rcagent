@@ -49,18 +49,21 @@ func LogDebugf(format string, a ...interface{}) {
 }
 
 func GetMachineId() string {
-	return GetHostInfo().MachineId
+	if os.Getenv("MACHINE_ID") != "" {
+		return os.Getenv("MACHINE_ID")
+	}
+	machineId, _ := machineid.ProtectedID("rcagent")
+	return machineId
 }
 
 func GetHostInfo() HostInfo {
 
 	hostname, _ := os.Hostname()
-	machineId, _ := machineid.ProtectedID("rcagent")
 	host, _ := host.Info()
 
 	i := HostInfo{
 		Hostname:  hostname,
-		MachineId: machineId,
+		MachineId: GetMachineId(),
 		OS:        host.OS,
 		Platform:  host.Platform,
 	}

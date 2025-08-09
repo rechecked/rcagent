@@ -77,6 +77,12 @@ func main() {
 	machineId := flag.Bool("m", false, "Show the machineID for this system")
 	flag.Parse()
 
+	if service.Interactive() {
+		fmt.Println("Running in terminal.")
+	} else {
+		fmt.Println("Running under service manager.")
+	}
+
 	// Parse/set version then show if someone does -v
 	config.ParseVersion(defaultVersion)
 	if *version {

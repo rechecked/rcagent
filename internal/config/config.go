@@ -241,6 +241,17 @@ func ParseConfig() error {
 	CfgData.HostAddrs = make(map[string]string)
 	ParseConfigDir()
 
+	// Override with environment variables
+	if os.Getenv("MANAGER_URL") != "" {
+		Settings.Manager.Url = os.Getenv("MANAGER_URL")
+	}
+	if os.Getenv("MANAGER_API_KEY") != "" {
+		Settings.Manager.APIKey = os.Getenv("MANAGER_API_KEY")
+	}
+	if os.Getenv("MANAGER_IGNORE_CERT") != "" {
+		Settings.Manager.IgnoreCert = os.Getenv("MANAGER_IGNORE_CERT") == "true"
+	}
+
 	LogDebug("Configuration:")
 	LogDebugf(" - Checks: %d", len(CfgData.Checks))
 	LogDebugf(" - Senders: %d", len(CfgData.Senders))
